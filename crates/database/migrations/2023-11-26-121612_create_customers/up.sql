@@ -1,0 +1,7 @@
+CREATE TABLE customers (
+  id INTEGER PRIMARY KEY NOT NULL,
+  name VARCHAR NOT NULL,
+  surname VARCHAR NOT NULL, 
+  email VARCHAR,
+  phone VARCHAR
+)
