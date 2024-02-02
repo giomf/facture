@@ -101,4 +101,13 @@ mod tests {
         let result = customers.create(&NEW_CUSTOMER);
         assert!(result.is_ok());
     }
+
+    #[test]
+    fn delete() -> anyhow::Result<()> {
+        let (_temp_dir, mut customers) = setup().unwrap();
+        let customer = customers.create(&NEW_CUSTOMER)?;
+        let result = customers.delete(customer.id);
+        assert!(result.is_ok());
+        Ok(())
+    }
 }
