@@ -33,6 +33,13 @@ impl Repository<Customer, NewCustomer> for Customers {
         Self { connection }
     }
 
+    fn create(&mut self, element: &NewCustomer) -> anyhow::Result<Customer> {
+        let customer: Customer = diesel::insert_into(customers::table)
+            .values(element)
+            .get_result(&mut self.connection)?;
+        Ok(customer)
+    }
+
     fn read(&mut self, id: i32) -> anyhow::Result<Option<Customer>> {
         let customer = customers::dsl::customers
             .find(id)
@@ -41,13 +48,8 @@ impl Repository<Customer, NewCustomer> for Customers {
 
         Ok(customer)
     }
-
-    fn create(&mut self, element: &NewCustomer) -> anyhow::Result<()> {
-        diesel::insert_into(customers::table)
-            .values(element)
-            .execute(&mut self.connection)?;
-
-        Ok(())
+    fn read_all(&mut self) -> anyhow::Result<Vec<Customer>> {
+        todo!()
     }
 
     fn delete(&mut self, id: i32) -> anyhow::Result<()> {
