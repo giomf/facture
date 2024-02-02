@@ -7,5 +7,9 @@ edition = "2021"
 
 [dependencies]
 diesel = { version = "2.1.4", features = ["sqlite"] }
-diesel_migrations = { version = "2.1.0", features = ["sqlite"] }
 anyhow.workspace = true
+
+[dev-dependencies]
+lazy_static.workspace = true
+tempfile.workspace = true
+diesel_migrations.workspace = true

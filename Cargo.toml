@@ -1,8 +1,11 @@
 [workspace]
+resolver = "2"
 members = [
     "crates/database"
 ]
 
 [workspace.dependencies]
 anyhow = "1.0.75"
-
+lazy_static = "1.4.0"
+tempfile = "3.9.0"
+diesel_migrations = "2.0.0"
