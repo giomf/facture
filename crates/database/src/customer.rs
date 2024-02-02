@@ -3,7 +3,7 @@ use crate::Repository;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, Debug, PartialEq)]
 #[diesel(table_name = crate::schema::customers)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Customer {
@@ -103,10 +103,21 @@ mod tests {
     }
 
     #[test]
+    fn read() -> anyhow::Result<()> {
+        let (_temp_dir, mut customers) = setup().unwrap();
+        let created_customer = customers.create(&NEW_CUSTOMER)?;
+        let readed_customer = customers.read(created_customer.id)?.unwrap();
+
+        assert_eq!(created_customer, readed_customer);
+        Ok(())
+    }
+
+    #[test]
     fn delete() -> anyhow::Result<()> {
         let (_temp_dir, mut customers) = setup().unwrap();
         let customer = customers.create(&NEW_CUSTOMER)?;
         let result = customers.delete(customer.id);
+
         assert!(result.is_ok());
         Ok(())
     }
