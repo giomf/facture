@@ -2,7 +2,7 @@ use super::Command;
 use clap::{Args, Subcommand};
 use database::{
     create_connection,
-    customer::{CustomerRepository, NewCustomer},
+    customer::{CustomerRepository, NewCustomer, UpdateCustomer},
     Repository, DATABASE_PATH,
 };
 
@@ -80,5 +80,14 @@ fn list(mut customers: CustomerRepository) -> anyhow::Result<()> {
 }
 
 fn edit(mut customers: CustomerRepository, args: EditArgs) -> anyhow::Result<()> {
-    todo!()
+    let customer_update = UpdateCustomer {
+        name: args.name,
+        surname: args.surname,
+        email: args.email,
+        phone: args.phone,
+    };
+
+    let updated_customer = customers.update(args.id, &customer_update)?;
+    println!("{:?}", updated_customer);
+    Ok(())
 }

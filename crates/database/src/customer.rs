@@ -24,11 +24,20 @@ pub struct NewCustomer {
     pub phone: Option<String>,
 }
 
+#[derive(AsChangeset, Default, Debug)]
+#[diesel(table_name = crate::schema::customers)]
+pub struct UpdateCustomer {
+    pub name: Option<String>,
+    pub surname: Option<String>,
+    pub email: Option<String>,
+    pub phone: Option<String>,
+}
+
 pub struct CustomerRepository {
     connection: SqliteConnection,
 }
 
-impl Repository<Customer, NewCustomer> for CustomerRepository {
+impl Repository<Customer, NewCustomer, UpdateCustomer> for CustomerRepository {
     fn new(connection: SqliteConnection) -> Self {
         Self { connection }
     }
@@ -53,8 +62,13 @@ impl Repository<Customer, NewCustomer> for CustomerRepository {
         Ok(cusomers)
     }
 
-    fn update(&mut self) -> anyhow::Result<Customer> {
-        todo!()
+    fn update(&mut self, id: i32, update_customer: &UpdateCustomer) -> anyhow::Result<Customer> {
+        let update_customer: Customer = diesel::update(customers::table)
+            .filter(customers::dsl::id.eq(id))
+            .set(update_customer)
+            .get_result(&mut self.connection)?;
+
+        Ok(update_customer)
     }
 
     fn delete(&mut self, id: i32) -> anyhow::Result<Customer> {
@@ -128,6 +142,26 @@ mod tests {
         let created_customers = vec![created_customer_0, created_customer_1, created_customer_2];
 
         assert_eq!(created_customers, readed_customers);
+        Ok(())
+    }
+
+    #[test]
+    fn update() -> anyhow::Result<()> {
+        let (_temp_dir, mut customers) = setup().unwrap();
+        let created_customer = customers.create(&NEW_CUSTOMER)?;
+        let updated_name = "John".to_string();
+        let update_customer = UpdateCustomer {
+            name: Some(updated_name.clone()),
+            ..Default::default()
+        };
+
+        let updated_customer = customers.update(created_customer.id, &update_customer)?;
+        let test_result = Customer {
+            name: updated_name,
+            ..created_customer
+        };
+
+        assert_eq!(test_result, updated_customer);
         Ok(())
     }
 

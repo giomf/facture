@@ -5,12 +5,12 @@ use diesel::{sqlite::SqliteConnection, Connection};
 
 pub const DATABASE_PATH: &str = "./facture.sqlite";
 
-pub trait Repository<T, E> {
+pub trait Repository<T, E, U> {
     fn new(connection: SqliteConnection) -> Self;
     fn create(&mut self, element: &E) -> anyhow::Result<T>;
     fn read(&mut self, id: i32) -> anyhow::Result<Option<T>>;
     fn read_all(&mut self) -> anyhow::Result<Vec<T>>;
-    fn update(&mut self) -> anyhow::Result<T>;
+    fn update(&mut self, id: i32, element: &U) -> anyhow::Result<T>;
     fn delete(&mut self, id: i32) -> anyhow::Result<T>;
 }
 
