@@ -10,6 +10,7 @@ pub trait Command {
 #[clap(author, version, about = "facture", long_about = None)]
 #[clap(propagate_version = true)]
 pub enum Cli {
+    /// Manipulate customers
     #[command(subcommand)]
     Customer(CustomerCommand),
 }
