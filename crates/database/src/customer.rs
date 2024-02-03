@@ -24,20 +24,20 @@ pub struct NewCustomer {
     pub phone: Option<String>,
 }
 
-pub struct Customers {
+pub struct CustomerRepository {
     connection: SqliteConnection,
 }
 
-impl Repository<Customer, NewCustomer> for Customers {
+impl Repository<Customer, NewCustomer> for CustomerRepository {
     fn new(connection: SqliteConnection) -> Self {
         Self { connection }
     }
 
-    fn create(&mut self, element: &NewCustomer) -> anyhow::Result<Customer> {
-        let customer: Customer = diesel::insert_into(customers::table)
-            .values(element)
+    fn create(&mut self, new_customer: &NewCustomer) -> anyhow::Result<Customer> {
+        let new_customer: Customer = diesel::insert_into(customers::table)
+            .values(new_customer)
             .get_result(&mut self.connection)?;
-        Ok(customer)
+        Ok(new_customer)
     }
 
     fn read(&mut self, id: i32) -> anyhow::Result<Option<Customer>> {
@@ -51,6 +51,10 @@ impl Repository<Customer, NewCustomer> for Customers {
     fn read_all(&mut self) -> anyhow::Result<Vec<Customer>> {
         let cusomers = customers::table.get_results::<Customer>(&mut self.connection)?;
         Ok(cusomers)
+    }
+
+    fn update(&mut self) -> anyhow::Result<Customer> {
+        todo!()
     }
 
     fn delete(&mut self, id: i32) -> anyhow::Result<Customer> {
@@ -85,14 +89,14 @@ mod tests {
         };
     }
 
-    fn setup() -> anyhow::Result<(TempDir, Customers)> {
+    fn setup() -> anyhow::Result<(TempDir, CustomerRepository)> {
         let temp_dir = tempdir()?;
         let database_path = temp_dir.path().join(DATABASE_NAME);
         let database_path = database_path.to_string_lossy();
         let migrations = FileBasedMigrations::find_migrations_directory_in_path("./migrations")?;
         let mut connection = create_connection(&database_path);
         connection.run_pending_migrations(migrations).unwrap();
-        let customers = Customers::new(connection);
+        let customers = CustomerRepository::new(connection);
         Ok((temp_dir, customers))
     }
 

@@ -2,7 +2,7 @@ use super::Command;
 use clap::{Args, Subcommand};
 use database::{
     create_connection,
-    customer::{Customers, NewCustomer},
+    customer::{CustomerRepository, NewCustomer},
     Repository, DATABASE_PATH,
 };
 
@@ -19,7 +19,7 @@ pub struct DeleteArgs {
     pub id: i32,
 }
 
-#[derive(Debug, Args)]
+#[derive(Args, Clone, Debug)]
 pub struct EditArgs {
     pub id: i32,
     pub name: Option<String>,
@@ -43,17 +43,17 @@ pub enum CustomerCommand {
 impl Command for CustomerCommand {
     fn execute(&self) -> anyhow::Result<()> {
         let connection = create_connection(DATABASE_PATH);
-        let customers = Customers::new(connection);
+        let customers = CustomerRepository::new(connection);
         match &self {
             CustomerCommand::Create(args) => create(customers, args.clone()),
             CustomerCommand::Delete(args) => delete(customers, args.clone()),
             CustomerCommand::List => list(customers),
-            CustomerCommand::Edit(_) => todo!(),
+            CustomerCommand::Edit(args) => edit(customers, args.clone()),
         }
     }
 }
 
-fn create(mut customers: Customers, args: CreateArgs) -> anyhow::Result<()> {
+fn create(mut customers: CustomerRepository, args: CreateArgs) -> anyhow::Result<()> {
     let new_customer = NewCustomer {
         name: args.name,
         surname: args.surname,
@@ -66,15 +66,19 @@ fn create(mut customers: Customers, args: CreateArgs) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn delete(mut customers: Customers, args: DeleteArgs) -> anyhow::Result<()> {
+fn delete(mut customers: CustomerRepository, args: DeleteArgs) -> anyhow::Result<()> {
     let deleted_costumer = customers.delete(args.id)?;
     println!("{:?}", deleted_costumer);
     Ok(())
 }
 
-fn list(mut customers: Customers) -> anyhow::Result<()> {
+fn list(mut customers: CustomerRepository) -> anyhow::Result<()> {
     for customer in customers.read_all()? {
         println!("{:?}", customer);
     }
     Ok(())
+}
+
+fn edit(mut customers: CustomerRepository, args: EditArgs) -> anyhow::Result<()> {
+    todo!()
 }
