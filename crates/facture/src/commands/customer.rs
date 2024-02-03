@@ -8,23 +8,48 @@ use database::{
 
 #[derive(Args, Clone, Debug)]
 pub struct CreateArgs {
+    /// Customer name
+    #[arg(long)]
     pub name: String,
+
+    /// Customer surname
+    #[arg(long)]
     pub surname: String,
+
+    /// Customer email address
+    #[arg(long)]
     pub email: Option<String>,
+
+    /// Customer phone number
+    #[arg(long)]
     pub phone: Option<String>,
 }
 
 #[derive(Args, Clone, Debug)]
 pub struct DeleteArgs {
+    /// Customer ID
     pub id: i32,
 }
 
 #[derive(Args, Clone, Debug)]
 pub struct EditArgs {
+    /// Customer ID
     pub id: i32,
+
+    /// Customer name
+    #[arg(long)]
     pub name: Option<String>,
+
+    /// Customer surname
+    #[arg(long)]
     pub surname: Option<String>,
+
+    /// Customer email address
+    #[arg(long)]
     pub email: Option<String>,
+
+    /// Customer phone number
+    #[arg(long)]
     pub phone: Option<String>,
 }
 
@@ -32,10 +57,13 @@ pub struct EditArgs {
 pub enum CustomerCommand {
     /// Create a new customer
     Create(CreateArgs),
+
     /// Delete a customer
     Delete(DeleteArgs),
+
     /// List all customers
     List,
+
     /// Edit a customer
     Edit(EditArgs),
 }
