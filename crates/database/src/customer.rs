@@ -49,7 +49,8 @@ impl Repository<Customer, NewCustomer> for Customers {
         Ok(customer)
     }
     fn read_all(&mut self) -> anyhow::Result<Vec<Customer>> {
-        todo!()
+        let cusomers = customers::table.get_results::<Customer>(&mut self.connection)?;
+        Ok(cusomers)
     }
 
     fn delete(&mut self, id: i32) -> anyhow::Result<()> {
@@ -99,6 +100,7 @@ mod tests {
     fn create() {
         let (_temp_dir, mut customers) = setup().unwrap();
         let result = customers.create(&NEW_CUSTOMER);
+
         assert!(result.is_ok());
     }
 
@@ -109,6 +111,19 @@ mod tests {
         let readed_customer = customers.read(created_customer.id)?.unwrap();
 
         assert_eq!(created_customer, readed_customer);
+        Ok(())
+    }
+
+    #[test]
+    fn read_all() -> anyhow::Result<()> {
+        let (_temp_dir, mut customers) = setup().unwrap();
+        let created_customer_0 = customers.create(&NEW_CUSTOMER)?;
+        let created_customer_1 = customers.create(&NEW_CUSTOMER)?;
+        let created_customer_2 = customers.create(&NEW_CUSTOMER)?;
+        let readed_customers = customers.read_all()?;
+        let created_customers = vec![created_customer_0, created_customer_1, created_customer_2];
+
+        assert_eq!(created_customers, readed_customers);
         Ok(())
     }
 
