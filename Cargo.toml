@@ -1,6 +1,10 @@
+[workspace.package]
+authors = ["giomf <me@guif.dev>"]
+
 [workspace]
 resolver = "2"
 members = [
+    "crates/facture",
     "crates/database"
 ]
 

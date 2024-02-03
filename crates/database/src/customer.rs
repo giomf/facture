@@ -24,7 +24,7 @@ pub struct NewCustomer {
     pub phone: Option<String>,
 }
 
-struct Customers {
+pub struct Customers {
     connection: SqliteConnection,
 }
 
@@ -65,6 +65,7 @@ impl Repository<Customer, NewCustomer> for Customers {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::create_connection;
     use diesel_migrations::{FileBasedMigrations, MigrationHarness};
     use lazy_static::lazy_static;
     use tempfile::{tempdir, TempDir};
@@ -88,9 +89,8 @@ mod tests {
         let temp_dir = tempdir()?;
         let database_path = temp_dir.path().join(DATABASE_NAME);
         let database_path = database_path.to_string_lossy();
-        let mut connection = SqliteConnection::establish(&database_path)
-            .expect(format!("Unable to open {}", database_path).as_str());
         let migrations = FileBasedMigrations::find_migrations_directory_in_path("./migrations")?;
+        let mut connection = create_connection(&database_path);
         connection.run_pending_migrations(migrations).unwrap();
         let customers = Customers::new(connection);
         Ok((temp_dir, customers))
