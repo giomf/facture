@@ -14,7 +14,7 @@ pub struct CreateArgs {
     pub phone: Option<String>,
 }
 
-#[derive(Debug, Args)]
+#[derive(Args, Clone, Debug)]
 pub struct DeleteArgs {
     pub id: i32,
 }
@@ -46,7 +46,7 @@ impl Command for CustomerCommand {
         let customers = Customers::new(connection);
         match &self {
             CustomerCommand::Create(args) => create(customers, args.clone()),
-            CustomerCommand::Delete(_) => todo!(),
+            CustomerCommand::Delete(args) => delete(customers, args.clone()),
             CustomerCommand::List => list(customers),
             CustomerCommand::Edit(_) => todo!(),
         }
@@ -63,6 +63,12 @@ fn create(mut customers: Customers, args: CreateArgs) -> anyhow::Result<()> {
 
     let new_customer = customers.create(&new_customer)?;
     println!("{:?}", new_customer);
+    Ok(())
+}
+
+fn delete(mut customers: Customers, args: DeleteArgs) -> anyhow::Result<()> {
+    let deleted_costumer = customers.delete(args.id)?;
+    println!("{:?}", deleted_costumer);
     Ok(())
 }
 

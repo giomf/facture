@@ -53,12 +53,12 @@ impl Repository<Customer, NewCustomer> for Customers {
         Ok(cusomers)
     }
 
-    fn delete(&mut self, id: i32) -> anyhow::Result<()> {
-        diesel::delete(customers::table)
+    fn delete(&mut self, id: i32) -> anyhow::Result<Customer> {
+        let deleted_customer: Customer = diesel::delete(customers::table)
             .filter(customers::dsl::id.eq(id))
-            .execute(&mut self.connection)?;
+            .get_result(&mut self.connection)?;
 
-        Ok(())
+        Ok(deleted_customer)
     }
 }
 
