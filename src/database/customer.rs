@@ -1,4 +1,5 @@
 use crate::database::{schema::customers, Repository};
+use diesel::dsl::{exists, select};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
@@ -41,38 +42,55 @@ impl Repository<Customer, NewCustomer, UpdateCustomer> for CustomerRepository {
         Self { connection }
     }
 
+    fn exists(&mut self, customer_id: i32) -> anyhow::Result<bool> {
+        use crate::database::schema::customers::dsl::*;
+        let result = select(exists(customers.filter(id.eq(customer_id))))
+            .get_result(&mut self.connection)?;
+
+        Ok(result)
+    }
+
     fn create(&mut self, new_customer: &NewCustomer) -> anyhow::Result<Customer> {
-        let new_customer: Customer = diesel::insert_into(customers::table)
+        use crate::database::schema::customers::dsl::*;
+        let new_customer: Customer = diesel::insert_into(customers)
             .values(new_customer)
             .get_result(&mut self.connection)?;
         Ok(new_customer)
     }
 
-    fn read(&mut self, id: i32) -> anyhow::Result<Option<Customer>> {
-        let customer = customers::dsl::customers
-            .find(id)
+    fn read(&mut self, customer_id: i32) -> anyhow::Result<Option<Customer>> {
+        use crate::database::schema::customers::dsl::*;
+        let customer = customers
+            .find(customer_id)
             .first::<Customer>(&mut self.connection)
             .optional()?;
 
         Ok(customer)
     }
     fn read_all(&mut self) -> anyhow::Result<Vec<Customer>> {
-        let customers = customers::table.get_results::<Customer>(&mut self.connection)?;
-        Ok(customers)
+        use crate::database::schema::customers::dsl::*;
+        let all_customers = customers.get_results::<Customer>(&mut self.connection)?;
+        Ok(all_customers)
     }
 
-    fn update(&mut self, id: i32, update_customer: &UpdateCustomer) -> anyhow::Result<Customer> {
-        let update_customer: Customer = diesel::update(customers::table)
-            .filter(customers::dsl::id.eq(id))
+    fn update(
+        &mut self,
+        customer_id: i32,
+        update_customer: &UpdateCustomer,
+    ) -> anyhow::Result<Customer> {
+        use crate::database::schema::customers::dsl::*;
+        let update_customer: Customer = diesel::update(customers)
+            .filter(id.eq(customer_id))
             .set(update_customer)
             .get_result(&mut self.connection)?;
 
         Ok(update_customer)
     }
 
-    fn delete(&mut self, id: i32) -> anyhow::Result<Customer> {
-        let deleted_customer: Customer = diesel::delete(customers::table)
-            .filter(customers::dsl::id.eq(id))
+    fn delete(&mut self, customer_id: i32) -> anyhow::Result<Customer> {
+        use crate::database::schema::customers::dsl::*;
+        let deleted_customer: Customer = diesel::delete(customers)
+            .filter(id.eq(customer_id))
             .get_result(&mut self.connection)?;
 
         Ok(deleted_customer)

@@ -1,6 +1,6 @@
 use crate::database::{schema::invoices, Repository};
-use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use diesel::{dsl::exists, prelude::*, select};
 
 #[derive(Queryable, Selectable, Debug, PartialEq)]
 #[diesel(table_name = invoices)]
@@ -32,37 +32,62 @@ impl Repository<Invoice, NewInvoice, UpdateInvoice> for InvoiceRepository {
     }
 
     fn create(&mut self, new_invoice: &NewInvoice) -> anyhow::Result<Invoice> {
-        let new_invoice: Invoice = diesel::insert_into(invoices::table)
+        use crate::database::schema::invoices::dsl::*;
+
+        let new_invoice: Invoice = diesel::insert_into(invoices)
             .values(new_invoice)
             .get_result(&mut self.connection)?;
+
         Ok(new_invoice)
     }
 
-    fn read(&mut self, id: i32) -> anyhow::Result<Option<Invoice>> {
-        let invoice = invoices::dsl::invoices
-            .find(id)
+    fn exists(&mut self, invoice_id: i32) -> anyhow::Result<bool> {
+        use crate::database::schema::invoices::dsl::*;
+
+        let result =
+            select(exists(invoices.filter(id.eq(invoice_id)))).get_result(&mut self.connection)?;
+
+        Ok(result)
+    }
+
+    fn read(&mut self, invoice_id: i32) -> anyhow::Result<Option<Invoice>> {
+        use crate::database::schema::invoices::dsl::*;
+
+        let invoice = invoices
+            .find(invoice_id)
             .first::<Invoice>(&mut self.connection)
             .optional()?;
 
         Ok(invoice)
     }
     fn read_all(&mut self) -> anyhow::Result<Vec<Invoice>> {
-        let invoices = invoices::table.get_results::<Invoice>(&mut self.connection)?;
-        Ok(invoices)
+        use crate::database::schema::invoices::dsl::*;
+
+        let all_invoices = invoices.get_results::<Invoice>(&mut self.connection)?;
+
+        Ok(all_invoices)
     }
 
-    fn update(&mut self, id: i32, update_invoice: &UpdateInvoice) -> anyhow::Result<Invoice> {
-        let update_invoice: Invoice = diesel::update(invoices::table)
-            .filter(invoices::dsl::id.eq(id))
+    fn update(
+        &mut self,
+        invoice_id: i32,
+        update_invoice: &UpdateInvoice,
+    ) -> anyhow::Result<Invoice> {
+        use crate::database::schema::invoices::dsl::*;
+
+        let update_invoice: Invoice = diesel::update(invoices)
+            .filter(id.eq(invoice_id))
             .set(update_invoice)
             .get_result(&mut self.connection)?;
 
         Ok(update_invoice)
     }
 
-    fn delete(&mut self, id: i32) -> anyhow::Result<Invoice> {
-        let deleted_invoice: Invoice = diesel::delete(invoices::table)
-            .filter(invoices::dsl::id.eq(id))
+    fn delete(&mut self, invoice_id: i32) -> anyhow::Result<Invoice> {
+        use crate::database::schema::invoices::dsl::*;
+
+        let deleted_invoice: Invoice = diesel::delete(invoices)
+            .filter(id.eq(invoice_id))
             .get_result(&mut self.connection)?;
 
         Ok(deleted_invoice)

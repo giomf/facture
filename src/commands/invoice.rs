@@ -1,6 +1,7 @@
 use super::Command;
 use crate::database::{
     create_connection,
+    customer::CustomerRepository,
     invoice::{InvoiceRepository, NewInvoice},
     Repository, DATABASE_PATH,
 };
@@ -33,28 +34,38 @@ pub enum InvoiceCommand {
 
 impl Command for InvoiceCommand {
     fn execute(&self) -> anyhow::Result<()> {
-        let connection = create_connection(DATABASE_PATH);
-        let invoices = InvoiceRepository::new(connection);
+        let customers_connection = create_connection(DATABASE_PATH);
+        let invoices_connection = create_connection(DATABASE_PATH);
+        let customers = CustomerRepository::new(customers_connection);
+        let invoices = InvoiceRepository::new(invoices_connection);
+
         match &self {
-            InvoiceCommand::Create(args) => create(invoices, args.clone()),
-            InvoiceCommand::Delete(args) => delete(invoices, args.clone()),
+            InvoiceCommand::Create(args) => create(customers, invoices, args.customer_id),
+            InvoiceCommand::Delete(args) => delete(invoices, args.id),
             InvoiceCommand::List => list(invoices),
         }
     }
 }
 
-fn create(mut invoices: InvoiceRepository, args: CreateArgs) -> anyhow::Result<()> {
-    let new_customer = NewInvoice {
-        customer_id: args.customer_id,
-    };
-
+fn create(
+    mut customers: CustomerRepository,
+    mut invoices: InvoiceRepository,
+    customer_id: i32,
+) -> anyhow::Result<()> {
+    if !customers.exists(customer_id)? {
+        anyhow::bail!("Customer {customer_id} does not exists")
+    }
+    let new_customer = NewInvoice { customer_id };
     let new_invoice = invoices.create(&new_customer)?;
     println!("{:?}", new_invoice);
     Ok(())
 }
 
-fn delete(mut invoices: InvoiceRepository, args: DeleteArgs) -> anyhow::Result<()> {
-    let deleted_invoice = invoices.delete(args.id)?;
+fn delete(mut invoices: InvoiceRepository, invoice_id: i32) -> anyhow::Result<()> {
+    if !invoices.exists(invoice_id)? {
+        anyhow::bail!("Invoice {invoice_id} does not exists")
+    }
+    let deleted_invoice = invoices.delete(invoice_id)?;
     println!("{:?}", deleted_invoice);
     Ok(())
 }

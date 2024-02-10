@@ -8,6 +8,7 @@ pub const DATABASE_PATH: &str = "./facture.sqlite";
 
 pub trait Repository<T, E, U> {
     fn new(connection: SqliteConnection) -> Self;
+    fn exists(&mut self, id: i32) -> anyhow::Result<bool>;
     fn create(&mut self, element: &E) -> anyhow::Result<T>;
     fn read(&mut self, id: i32) -> anyhow::Result<Option<T>>;
     fn read_all(&mut self) -> anyhow::Result<Vec<T>>;

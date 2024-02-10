@@ -74,7 +74,7 @@ impl Command for CustomerCommand {
         let customers = CustomerRepository::new(connection);
         match &self {
             CustomerCommand::Create(args) => create(customers, args.clone()),
-            CustomerCommand::Delete(args) => delete(customers, args.clone()),
+            CustomerCommand::Delete(args) => delete(customers, args.id),
             CustomerCommand::List => list(customers),
             CustomerCommand::Edit(args) => edit(customers, args.clone()),
         }
@@ -94,8 +94,8 @@ fn create(mut customers: CustomerRepository, args: CreateArgs) -> anyhow::Result
     Ok(())
 }
 
-fn delete(mut customers: CustomerRepository, args: DeleteArgs) -> anyhow::Result<()> {
-    let deleted_costumer = customers.delete(args.id)?;
+fn delete(mut customers: CustomerRepository, customer_id: i32) -> anyhow::Result<()> {
+    let deleted_costumer = customers.delete(customer_id)?;
     println!("{:?}", deleted_costumer);
     Ok(())
 }
