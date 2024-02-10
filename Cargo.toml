@@ -1,14 +1,16 @@
-[workspace.package]
-authors = ["giomf <me@guif.dev>"]
+[package]
+name = "facture"
+version = "0.1.0"
+edition = "2021"
 
-[workspace]
-resolver = "2"
-members = [
-    "crates/facture",
-    "crates/database"
-]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[workspace.dependencies]
-anyhow = "1.0.75"
+[dependencies]
+anyhow = "1.0.79"
+clap = { version = "4.5.0", features = ["derive", "cargo"] }
+diesel = { version = "2.1.4", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
+diesel_migrations = { version = "2.1.0", features = ["sqlite"] }
+
+[dev-dependencies]
 lazy_static = "1.4.0"
-tempfile = "3.9.0"
+tempfile = "3.10.0"

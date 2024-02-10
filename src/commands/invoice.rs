@@ -1,10 +1,10 @@
 use super::Command;
-use clap::{Args, Subcommand};
-use database::{
+use crate::database::{
     create_connection,
     invoice::{InvoiceRepository, NewInvoice},
     Repository, DATABASE_PATH,
 };
+use clap::{Args, Subcommand};
 
 #[derive(Args, Clone, Debug)]
 pub struct CreateArgs {

@@ -1,10 +1,9 @@
-use crate::schema::invoices;
-use crate::Repository;
+use crate::database::{schema::invoices, Repository};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 #[derive(Queryable, Selectable, Debug, PartialEq)]
-#[diesel(table_name = crate::schema::invoices)]
+#[diesel(table_name = invoices)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Invoice {
     pub id: i32,
@@ -12,14 +11,14 @@ pub struct Invoice {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::schema::invoices)]
+#[diesel(table_name = invoices)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct NewInvoice {
     pub customer_id: i32,
 }
 
 #[derive(AsChangeset, Default, Debug)]
-#[diesel(table_name = crate::schema::invoices)]
+#[diesel(table_name = invoices)]
 pub struct UpdateInvoice {
     pub customer_id: Option<i32>,
 }
@@ -73,9 +72,7 @@ impl Repository<Invoice, NewInvoice, UpdateInvoice> for InvoiceRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::create_connection;
-    use crate::customer::CustomerRepository;
-    use crate::tests::*;
+    use crate::database::{create_connection, customer::CustomerRepository, tests::*};
     use diesel_migrations::{FileBasedMigrations, MigrationHarness};
     use tempfile::{tempdir, TempDir};
 
@@ -83,7 +80,8 @@ mod tests {
         let temp_dir = tempdir()?;
         let database_path = temp_dir.path().join(DATABASE_NAME);
         let database_path = database_path.to_string_lossy();
-        let migrations = FileBasedMigrations::find_migrations_directory_in_path("./migrations")?;
+        let migrations =
+            FileBasedMigrations::find_migrations_directory_in_path("src/database/migrations")?;
         let mut customers_connection = create_connection(&database_path);
         let invoices_connection = create_connection(&database_path);
         customers_connection

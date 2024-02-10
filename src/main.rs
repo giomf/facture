@@ -1,4 +1,5 @@
 mod commands;
+mod database;
 
 use clap::Parser;
 use commands::{Cli, Command};

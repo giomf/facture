@@ -1,6 +1,6 @@
 pub mod customer;
 pub mod invoice;
-pub mod schema;
+mod schema;
 
 use diesel::{sqlite::SqliteConnection, Connection};
 
@@ -22,7 +22,7 @@ pub fn create_connection(database_path: &str) -> SqliteConnection {
 
 #[cfg(test)]
 pub mod tests {
-    use crate::customer::NewCustomer;
+    use crate::database::customer::NewCustomer;
     use lazy_static::lazy_static;
 
     pub const DATABASE_NAME: &str = "facture_test.db";

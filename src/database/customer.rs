@@ -1,10 +1,9 @@
-use crate::schema::customers;
-use crate::Repository;
+use crate::database::{schema::customers, Repository};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 
 #[derive(Queryable, Selectable, Debug, PartialEq)]
-#[diesel(table_name = crate::schema::customers)]
+#[diesel(table_name = customers)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Customer {
     pub id: i32,
@@ -15,7 +14,7 @@ pub struct Customer {
 }
 
 #[derive(Insertable)]
-#[diesel(table_name = crate::schema::customers)]
+#[diesel(table_name = customers)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct NewCustomer {
     pub name: String,
@@ -25,7 +24,7 @@ pub struct NewCustomer {
 }
 
 #[derive(AsChangeset, Default, Debug)]
-#[diesel(table_name = crate::schema::customers)]
+#[diesel(table_name = customers)]
 pub struct UpdateCustomer {
     pub name: Option<String>,
     pub surname: Option<String>,
@@ -84,7 +83,7 @@ impl Repository<Customer, NewCustomer, UpdateCustomer> for CustomerRepository {
 pub mod tests {
 
     use super::*;
-    use crate::{create_connection, tests::*};
+    use crate::database::{create_connection, tests::*};
     use diesel_migrations::{FileBasedMigrations, MigrationHarness};
     use tempfile::{tempdir, TempDir};
 
@@ -92,7 +91,8 @@ pub mod tests {
         let temp_dir = tempdir()?;
         let database_path = temp_dir.path().join(DATABASE_NAME);
         let database_path = database_path.to_string_lossy();
-        let migrations = FileBasedMigrations::find_migrations_directory_in_path("./migrations")?;
+        let migrations =
+            FileBasedMigrations::find_migrations_directory_in_path("src/database/migrations")?;
         let mut connection = create_connection(&database_path);
         connection.run_pending_migrations(migrations).unwrap();
         let customers = CustomerRepository::new(connection);
