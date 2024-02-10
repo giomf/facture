@@ -58,8 +58,8 @@ impl Repository<Customer, NewCustomer, UpdateCustomer> for CustomerRepository {
         Ok(customer)
     }
     fn read_all(&mut self) -> anyhow::Result<Vec<Customer>> {
-        let cusomers = customers::table.get_results::<Customer>(&mut self.connection)?;
-        Ok(cusomers)
+        let customers = customers::table.get_results::<Customer>(&mut self.connection)?;
+        Ok(customers)
     }
 
     fn update(&mut self, id: i32, update_customer: &UpdateCustomer) -> anyhow::Result<Customer> {
@@ -81,27 +81,12 @@ impl Repository<Customer, NewCustomer, UpdateCustomer> for CustomerRepository {
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
+
     use super::*;
-    use crate::create_connection;
+    use crate::{create_connection, tests::*};
     use diesel_migrations::{FileBasedMigrations, MigrationHarness};
-    use lazy_static::lazy_static;
     use tempfile::{tempdir, TempDir};
-
-    const DATABASE_NAME: &str = "facture_test.db";
-    const NAME: &str = "Jon";
-    const SURNAME: &str = "Doe";
-    const EMAIL: &str = "jon.doe@example.com";
-    const PHONE: &str = "0123456789";
-
-    lazy_static! {
-        static ref NEW_CUSTOMER: NewCustomer = NewCustomer {
-            name: NAME.to_string(),
-            surname: SURNAME.to_string(),
-            email: Some(EMAIL.to_string()),
-            phone: Some(PHONE.to_string())
-        };
-    }
 
     fn setup() -> anyhow::Result<(TempDir, CustomerRepository)> {
         let temp_dir = tempdir()?;
@@ -126,9 +111,11 @@ mod tests {
     fn read() -> anyhow::Result<()> {
         let (_temp_dir, mut customers) = setup().unwrap();
         let created_customer = customers.create(&NEW_CUSTOMER)?;
-        let readed_customer = customers.read(created_customer.id)?.unwrap();
+        let read_customer = customers.read(created_customer.id)?;
+        assert!(read_customer.is_some());
+        let read_customer = read_customer.unwrap();
 
-        assert_eq!(created_customer, readed_customer);
+        assert_eq!(created_customer, read_customer);
         Ok(())
     }
 
