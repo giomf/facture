@@ -1,5 +1,7 @@
 pub mod customer;
+pub mod invoice;
 use self::customer::CustomerCommand;
+use self::invoice::InvoiceCommand;
 use clap::Parser;
 
 pub trait Command {
@@ -13,4 +15,8 @@ pub enum Cli {
     /// Manipulate customers
     #[command(subcommand)]
     Customer(CustomerCommand),
+
+    /// Manipulate invoices
+    #[command(subcommand)]
+    Invoice(InvoiceCommand),
 }

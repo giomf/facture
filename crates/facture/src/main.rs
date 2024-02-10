@@ -1,12 +1,13 @@
 mod commands;
 
 use clap::Parser;
-use commands::Command;
+use commands::{Cli, Command};
 
 fn main() -> anyhow::Result<()> {
-    let cli = commands::Cli::parse();
+    let cli = Cli::parse();
     match &cli {
-        commands::Cli::Customer(cmd) => cmd.execute()?,
+        Cli::Customer(cmd) => cmd.execute()?,
+        Cli::Invoice(cmd) => cmd.execute()?,
     }
     Ok(())
 }
