@@ -22,6 +22,7 @@ pub struct NewInvoice {
 pub struct UpdateInvoice {
     pub customer_id: Option<i32>,
 }
+
 pub struct InvoiceRepository {
     connection: SqliteConnection,
 }
@@ -60,6 +61,7 @@ impl Repository<Invoice, NewInvoice, UpdateInvoice> for InvoiceRepository {
 
         Ok(invoice)
     }
+
     fn read_all(&mut self) -> anyhow::Result<Vec<Invoice>> {
         use crate::database::schema::invoices::dsl::*;
 

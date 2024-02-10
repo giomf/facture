@@ -20,6 +20,13 @@ pub struct DeleteArgs {
     pub id: i32,
 }
 
+#[derive(Args, Clone, Debug)]
+pub struct ListArgs {
+    /// Customer ID
+    #[arg(long)]
+    pub customer_id: i32,
+}
+
 #[derive(Debug, Subcommand)]
 pub enum InvoiceCommand {
     /// Create a new invoice
@@ -29,7 +36,7 @@ pub enum InvoiceCommand {
     Delete(DeleteArgs),
 
     /// List all invoices related to a customer
-    List,
+    List(ListArgs),
 }
 
 impl Command for InvoiceCommand {
@@ -42,7 +49,7 @@ impl Command for InvoiceCommand {
         match &self {
             InvoiceCommand::Create(args) => create(customers, invoices, args.customer_id),
             InvoiceCommand::Delete(args) => delete(invoices, args.id),
-            InvoiceCommand::List => list(invoices),
+            InvoiceCommand::List(args) => list(customers, invoices, args.customer_id),
         }
     }
 }
@@ -70,9 +77,18 @@ fn delete(mut invoices: InvoiceRepository, invoice_id: i32) -> anyhow::Result<()
     Ok(())
 }
 
-fn list(mut invoices: InvoiceRepository) -> anyhow::Result<()> {
+fn list(
+    mut customers: CustomerRepository,
+    mut invoices: InvoiceRepository,
+    customer_id: i32,
+) -> anyhow::Result<()> {
+    if !customers.exists(customer_id)? {
+        anyhow::bail!("Customer {customer_id} does not exists")
+    }
+
     for invoice in invoices.read_all()? {
         println!("{:?}", invoice);
     }
+
     Ok(())
 }
