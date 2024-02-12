@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use super::Command;
 use crate::database::{
     create_connection,
@@ -41,8 +43,9 @@ pub enum InvoiceCommand {
 
 impl Command for InvoiceCommand {
     fn execute(&self) -> anyhow::Result<()> {
-        let customers_connection = create_connection(DATABASE_PATH);
-        let invoices_connection = create_connection(DATABASE_PATH);
+        let database_path = Path::new(DATABASE_PATH);
+        let customers_connection = create_connection(database_path);
+        let invoices_connection = create_connection(database_path);
         let customers = CustomerRepository::new(customers_connection);
         let invoices = InvoiceRepository::new(invoices_connection);
 

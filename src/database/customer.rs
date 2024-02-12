@@ -102,32 +102,27 @@ pub mod tests {
 
     use super::*;
     use crate::database::{create_connection, tests::*};
-    use diesel_migrations::{FileBasedMigrations, MigrationHarness};
-    use tempfile::{tempdir, TempDir};
+    use tempfile::TempDir;
 
     fn setup() -> anyhow::Result<(TempDir, CustomerRepository)> {
-        let temp_dir = tempdir()?;
-        let database_path = temp_dir.path().join(DATABASE_NAME);
-        let database_path = database_path.to_string_lossy();
-        let migrations =
-            FileBasedMigrations::find_migrations_directory_in_path("src/database/migrations")?;
-        let mut connection = create_connection(&database_path);
-        connection.run_pending_migrations(migrations).unwrap();
+        let (temp_dir, database_path) = init_database()?;
+        let connection = create_connection(&database_path);
         let customers = CustomerRepository::new(connection);
         Ok((temp_dir, customers))
     }
 
     #[test]
-    fn create() {
-        let (_temp_dir, mut customers) = setup().unwrap();
+    fn create() -> anyhow::Result<()> {
+        let (_temp_dir, mut customers) = setup()?;
         let result = customers.create(&NEW_CUSTOMER);
 
         assert!(result.is_ok());
+        Ok(())
     }
 
     #[test]
     fn read() -> anyhow::Result<()> {
-        let (_temp_dir, mut customers) = setup().unwrap();
+        let (_temp_dir, mut customers) = setup()?;
         let created_customer = customers.create(&NEW_CUSTOMER)?;
         let read_customer = customers.read(created_customer.id)?;
         assert!(read_customer.is_some());
@@ -139,7 +134,7 @@ pub mod tests {
 
     #[test]
     fn read_all() -> anyhow::Result<()> {
-        let (_temp_dir, mut customers) = setup().unwrap();
+        let (_temp_dir, mut customers) = setup()?;
         let created_customer_0 = customers.create(&NEW_CUSTOMER)?;
         let created_customer_1 = customers.create(&NEW_CUSTOMER)?;
         let created_customer_2 = customers.create(&NEW_CUSTOMER)?;

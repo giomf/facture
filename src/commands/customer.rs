@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use super::Command;
 use crate::database::{
     create_connection,
@@ -70,7 +72,7 @@ pub enum CustomerCommand {
 
 impl Command for CustomerCommand {
     fn execute(&self) -> anyhow::Result<()> {
-        let connection = create_connection(DATABASE_PATH);
+        let connection = create_connection(Path::new(DATABASE_PATH));
         let customers = CustomerRepository::new(connection);
         match &self {
             CustomerCommand::Create(args) => create(customers, args.clone()),

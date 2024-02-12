@@ -100,20 +100,12 @@ impl Repository<Invoice, NewInvoice, UpdateInvoice> for InvoiceRepository {
 mod tests {
     use super::*;
     use crate::database::{create_connection, customer::CustomerRepository, tests::*};
-    use diesel_migrations::{FileBasedMigrations, MigrationHarness};
-    use tempfile::{tempdir, TempDir};
+    use tempfile::TempDir;
 
     fn setup() -> anyhow::Result<(TempDir, CustomerRepository, InvoiceRepository)> {
-        let temp_dir = tempdir()?;
-        let database_path = temp_dir.path().join(DATABASE_NAME);
-        let database_path = database_path.to_string_lossy();
-        let migrations =
-            FileBasedMigrations::find_migrations_directory_in_path("src/database/migrations")?;
-        let mut customers_connection = create_connection(&database_path);
+        let (temp_dir, database_path) = init_database()?;
+        let customers_connection = create_connection(&database_path);
         let invoices_connection = create_connection(&database_path);
-        customers_connection
-            .run_pending_migrations(migrations)
-            .unwrap();
         let customers = CustomerRepository::new(customers_connection);
         let invoices = InvoiceRepository::new(invoices_connection);
         Ok((temp_dir, customers, invoices))
@@ -134,11 +126,9 @@ mod tests {
     #[test]
     fn read() -> anyhow::Result<()> {
         let (_temp_dir, mut customers, mut invoices) = setup()?;
-        let customer = customers.create(&NEW_CUSTOMER)?;
-        let new_invoice = NewInvoice {
-            customer_id: customer.id,
-        };
-        let invoice = invoices.create(&new_invoice)?;
+        let customer = init_customer(&mut customers)?;
+        let invoice = init_invoice(&customer, &mut invoices)?;
+
         let read_invoice = invoices.read(invoice.id)?;
         assert!(read_invoice.is_some());
 
@@ -150,14 +140,12 @@ mod tests {
     #[test]
     fn read_all() -> anyhow::Result<()> {
         let (_temp_dir, mut customers, mut invoices) = setup()?;
-        let customer = customers.create(&NEW_CUSTOMER)?;
-        let new_invoice = NewInvoice {
-            customer_id: customer.id,
-        };
+        let customer = init_customer(&mut customers)?;
         let mut created_invoices = Vec::new();
         for _ in 0..2 {
-            created_invoices.push(invoices.create(&new_invoice)?);
+            created_invoices.push(init_invoice(&customer, &mut invoices)?)
         }
+
         let read_invoices = invoices.read_all()?;
         assert_eq!(created_invoices, read_invoices);
         Ok(())
@@ -166,11 +154,9 @@ mod tests {
     #[test]
     fn delete() -> anyhow::Result<()> {
         let (_temp_dir, mut customers, mut invoices) = setup()?;
-        let customer = customers.create(&NEW_CUSTOMER)?;
-        let new_invoice = NewInvoice {
-            customer_id: customer.id,
-        };
-        let invoice = invoices.create(&new_invoice)?;
+        let customer = init_customer(&mut customers)?;
+        let invoice = init_invoice(&customer, &mut invoices)?;
+
         let result = invoices.delete(invoice.id);
         assert!(result.is_ok());
         Ok(())
