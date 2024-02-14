@@ -1,6 +1,6 @@
 pub mod customer;
 pub mod invoice;
-pub mod items;
+pub mod item;
 mod schema;
 
 use std::path::Path;
@@ -35,7 +35,7 @@ pub mod tests {
         create_connection,
         customer::{Customer, CustomerRepository, NewCustomer},
         invoice::{Invoice, InvoiceRepository},
-        items::{Item, ItemRepository, NewItem},
+        item::{Item, ItemRepository, NewItem},
         Repository,
     };
     use diesel_migrations::{FileBasedMigrations, MigrationHarness};

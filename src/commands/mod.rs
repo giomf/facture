@@ -1,5 +1,6 @@
 pub mod customer;
 pub mod invoice;
+pub mod item;
 use self::customer::CustomerCommand;
 use self::invoice::InvoiceCommand;
 use clap::Parser;

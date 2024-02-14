@@ -32,7 +32,6 @@ pub struct UpdateItem {
     pub name: Option<String>,
     pub amount: Option<i32>,
     pub price: Option<f32>,
-    pub invoice_id: Option<i32>,
 }
 pub struct ItemRepository {
     connection: SqliteConnection,
