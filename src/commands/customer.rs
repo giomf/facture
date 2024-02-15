@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use super::Command;
 use crate::database::{
     create_connection,
@@ -7,6 +5,7 @@ use crate::database::{
     Repository, DATABASE_PATH,
 };
 use clap::{Args, Subcommand};
+use std::path::Path;
 
 #[derive(Args, Clone, Debug)]
 pub struct CreateArgs {
@@ -25,6 +24,12 @@ pub struct CreateArgs {
     /// Customer phone number
     #[arg(long)]
     pub phone: Option<String>,
+}
+
+#[derive(Args, Clone, Debug)]
+pub struct ShowArgs {
+    /// Customer ID
+    pub id: i32,
 }
 
 #[derive(Args, Clone, Debug)]
@@ -60,6 +65,9 @@ pub enum CustomerCommand {
     /// Create a new customer
     Create(CreateArgs),
 
+    /// Show a customer
+    Show(ShowArgs),
+
     /// Delete a customer
     Delete(DeleteArgs),
 
@@ -76,6 +84,7 @@ impl Command for CustomerCommand {
         let customers = CustomerRepository::new(connection);
         match &self {
             CustomerCommand::Create(args) => create(customers, args.clone()),
+            CustomerCommand::Show(args) => show(customers, args.id),
             CustomerCommand::Delete(args) => delete(customers, args.id),
             CustomerCommand::List => list(customers),
             CustomerCommand::Edit(args) => edit(customers, args.clone()),
@@ -93,6 +102,12 @@ fn create(mut customers: CustomerRepository, args: CreateArgs) -> anyhow::Result
 
     let new_customer = customers.create(&new_customer)?;
     println!("{:?}", new_customer);
+    Ok(())
+}
+
+fn show(mut customers: CustomerRepository, customer_id: i32) -> anyhow::Result<()> {
+    let customer = customers.read(customer_id)?.unwrap();
+    println!("{:?}", customer);
     Ok(())
 }
 
