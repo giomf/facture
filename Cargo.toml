@@ -1,0 +1,17 @@
+[package]
+name = "facture"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.94"
+bon = "3.2.0"
+clap = { version = "4.5.22", features = ["cargo", "derive"] }
+native_db = "0.8.1"
+native_model = "0.4.20"
+serde = { version = "1.0.215", features = ["derive"] }
+uuid = { version = "1.11.0", features = ["v7"] }
+
+[dev-dependencies]
