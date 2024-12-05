@@ -1,25 +1,11 @@
 use crate::{
-    cli::CustomerCommand,
     database::FactureDatabase,
     models::{Address, Contact, Customer},
     ui::{self, Tableable},
 };
 use anyhow::Result;
 
-pub fn handle_customer_command(
-    command: &CustomerCommand,
-    database: &FactureDatabase,
-) -> Result<()> {
-    match command {
-        CustomerCommand::List => list(database)?,
-        CustomerCommand::Add => add(database)?,
-        CustomerCommand::Remove => remove(database)?,
-        CustomerCommand::Edit => edit(database)?,
-    }
-    Ok(())
-}
-
-fn list(database: &FactureDatabase) -> Result<()> {
+pub fn list(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let header = Vec::<Customer>::header();
     let rows = customers.rows();
@@ -28,7 +14,7 @@ fn list(database: &FactureDatabase) -> Result<()> {
     Ok(())
 }
 
-fn add(database: &FactureDatabase) -> Result<()> {
+pub fn add(database: &FactureDatabase) -> Result<()> {
     let organisation = ui::prompt_text("Organisation:")?;
     let name = ui::prompt_text("Name:")?;
     let surname = ui::prompt_text("Surname:")?;
@@ -66,7 +52,7 @@ fn add(database: &FactureDatabase) -> Result<()> {
     Ok(())
 }
 
-fn remove(database: &FactureDatabase) -> Result<()> {
+pub fn remove(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let customer = ui::prompt_select("Choose a customer to delete", customers)?;
     let result = ui::promt_confirm("This will also delete all invoices")?;
@@ -82,7 +68,7 @@ fn remove(database: &FactureDatabase) -> Result<()> {
     Ok(())
 }
 
-fn edit(database: &FactureDatabase) -> Result<()> {
+pub fn edit(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let customer = ui::prompt_select("Choose a customer to edit", customers)?;
     let customer_as_yaml = serde_yaml::to_string(&customer)?;

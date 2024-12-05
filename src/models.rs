@@ -1,4 +1,5 @@
 use bon::Builder;
+use chrono::NaiveDate;
 use native_db::*;
 use native_model::{native_model, Model};
 use serde::{Deserialize, Serialize};
@@ -8,6 +9,7 @@ use uuid::Uuid;
 pub static MODELS: LazyLock<Models> = LazyLock::new(|| {
     let mut models = Models::new();
     models.define::<Customer>().unwrap();
+    models.define::<Invoice>().unwrap();
     models
 });
 
@@ -22,6 +24,8 @@ pub struct Customer {
     pub organisation: String,
     pub contact: Contact,
     pub address: Address,
+    #[builder(skip)]
+    pub invoices: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
@@ -39,6 +43,26 @@ pub struct Contact {
     pub surname: String,
     pub email: Option<String>,
     pub phone: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
+#[native_model(id = 2, version = 1)]
+#[native_db]
+#[builder(on(String, into))]
+pub struct Invoice {
+    #[primary_key]
+    #[builder(default = uuid())]
+    pub uuid: String,
+    pub date: NaiveDate,
+    pub customer: String,
+    pub items: Vec<Item>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
+pub struct Item {
+    pub description: String,
+    pub price: u32,
+    pub quantity: Option<u32>,
 }
 
 fn uuid() -> String {

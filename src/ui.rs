@@ -1,4 +1,4 @@
-use crate::models::Customer;
+use crate::models::{Customer, Invoice};
 use anyhow::Result;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, ContentArrangement, Table};
 use inquire::{
@@ -48,12 +48,30 @@ impl Tableable for Vec<Customer> {
     }
 }
 
+impl Tableable for Vec<Invoice> {
+    fn header() -> Vec<String> {
+        vec!["Customer".to_owned(), "Date".to_owned()]
+    }
+
+    fn rows(&self) -> Vec<Vec<String>> {
+        self.into_iter()
+            .map(|invoice| vec![invoice.customer.clone(), invoice.date.clone().to_string()])
+            .collect()
+    }
+}
+
 impl Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&format!(
             "{} - {} {}",
             self.organisation, self.contact.name, self.contact.surname
         ))
+    }
+}
+
+impl Display for Invoice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&format!("{}", self.uuid))
     }
 }
 

@@ -16,11 +16,13 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     #[command(subcommand)]
-    Customer(CustomerCommand),
+    Customer(ItemCommand),
+    #[command(subcommand)]
+    Invoice(ItemCommand),
 }
 
 #[derive(Subcommand, Debug)]
-pub enum CustomerCommand {
+pub enum ItemCommand {
     List,
     Add,
     Remove,
