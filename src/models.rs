@@ -45,6 +45,21 @@ pub struct Contact {
     pub phone: Option<String>,
 }
 
+impl Customer {
+    pub fn add_invoice(&mut self, invoice_id: &str) {
+        self.invoices.push(invoice_id.to_owned());
+    }
+    pub fn remove_invoice(&mut self, invoice_id: &str) {
+        let new_invoices: Vec<_> = self
+            .invoices
+            .clone()
+            .into_iter()
+            .filter(|current_invoice_id| *current_invoice_id == invoice_id)
+            .collect();
+        self.invoices = new_invoices;
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
 #[native_model(id = 2, version = 1)]
 #[native_db]

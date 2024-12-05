@@ -3,7 +3,7 @@ use crate::{
     models::{Customer, Invoice, Item},
     ui::{self, Tableable},
 };
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use chrono::Local;
 
 pub fn list(database: &FactureDatabase) -> Result<()> {
@@ -53,7 +53,10 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
 pub fn remove(database: &FactureDatabase) -> Result<()> {
     let invoices: Vec<Invoice> = database.read_all()?;
     let invoice = ui::prompt_select("Choose a invoice to delete", invoices)?;
-
+    let mut customer: Customer = database
+        .read(&invoice.customer)?
+        .ok_or_else(|| anyhow!("{} not found", &invoice.customer))?;
+    customer.remove_invoice(&invoice.uuid);
     database.remove(&invoice)?;
     println!("Invoice removed");
 
