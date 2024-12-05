@@ -79,3 +79,10 @@ pub fn edit(database: &FactureDatabase) -> Result<()> {
     println!("Customer edited");
     Ok(())
 }
+pub fn show(database: &FactureDatabase) -> Result<()> {
+    let customers: Vec<Customer> = database.read_all()?;
+    let customer = ui::prompt_select("Choose an invoice to edit", customers)?;
+    let customer_as_yaml = serde_yaml::to_string(&customer)?;
+    println!("{customer_as_yaml}");
+    Ok(())
+}

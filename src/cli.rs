@@ -23,8 +23,9 @@ pub enum Commands {
 
 #[derive(Subcommand, Debug)]
 pub enum ItemCommand {
-    List,
     Add,
-    Remove,
     Edit,
+    List,
+    Remove,
+    Show,
 }
