@@ -52,6 +52,8 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
         .build();
 
     database.insert(&customer)?;
+    let customer_yaml = customer.to_yaml()?;
+    println!("\n{customer_yaml}");
     Ok(())
 }
 
@@ -74,18 +76,18 @@ pub fn remove(database: &FactureDatabase) -> Result<()> {
 pub fn edit(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let customer = prompt::select("Choose a customer to edit", customers)?;
-    let customer_as_yaml = serde_yaml::to_string(&customer)?;
-    let customer_as_yaml_edited =
-        prompt::editor("Open editor to edit customer", &customer_as_yaml, ".yaml")?;
-    let customer_edited: Customer = serde_yaml::from_str(&customer_as_yaml_edited)?;
-    database.update(&customer_edited.uuid, &customer_edited)?;
-    println!("Customer edited");
+    let customer_yaml = serde_yaml::to_string(&customer)?;
+    let customer_yaml = prompt::editor("Open editor to edit customer", &customer_yaml, ".yaml")?;
+    let customer: Customer = serde_yaml::from_str(&customer_yaml)?;
+    database.update(&customer.uuid, &customer)?;
+    let customer_yaml = customer.to_yaml()?;
+    println!("\n{customer_yaml}");
     Ok(())
 }
 pub fn show(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let customer = prompt::select("Choose an invoice to edit", customers)?;
-    let customer_as_yaml = customer.to_yaml()?;
-    println!("{customer_as_yaml}");
+    let customer_yaml = customer.to_yaml()?;
+    println!("{customer_yaml}");
     Ok(())
 }
