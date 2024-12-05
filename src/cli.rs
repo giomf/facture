@@ -1,4 +1,4 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(version, about = "Divera reports", long_about = None)]
@@ -14,4 +14,15 @@ pub struct Cli {
 
 /// Subcommands of the application
 #[derive(Subcommand, Debug)]
-pub enum Commands {}
+pub enum Commands {
+    #[command(subcommand)]
+    Customer(CustomerCommand),
+}
+
+#[derive(Subcommand, Debug)]
+pub enum CustomerCommand {
+    List,
+    Add,
+    Remove,
+    Edit,
+}

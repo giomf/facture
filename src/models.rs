@@ -8,7 +8,6 @@ use uuid::Uuid;
 pub static MODELS: LazyLock<Models> = LazyLock::new(|| {
     let mut models = Models::new();
     models.define::<Customer>().unwrap();
-    models.define::<Invoice>().unwrap();
     models
 });
 
@@ -20,21 +19,26 @@ pub struct Customer {
     #[builder(default = uuid())]
     #[primary_key]
     pub uuid: String,
+    pub organisation: String,
+    pub contact: Contact,
+    pub address: Address,
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
+pub struct Address {
+    pub country: String,
+    pub city: String,
+    pub postal_code: String,
+    pub street: String,
+    pub number: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
+pub struct Contact {
     pub name: String,
     pub surname: String,
     pub email: Option<String>,
     pub phone: Option<String>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
-#[native_model(id = 2, version = 1)]
-#[native_db]
-#[builder(on(String, into))]
-pub struct Invoice {
-    #[primary_key]
-    #[builder(default = uuid())]
-    pub uuid: String,
-    pub customer_id: i32,
 }
 
 fn uuid() -> String {
