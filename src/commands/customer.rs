@@ -4,7 +4,7 @@ use crate::{
         customer::{Address, Contact, Customer},
         YamlAble,
     },
-    ui::{self, Tableable},
+    ui::{self, prompt, Tableable},
 };
 use anyhow::Result;
 
@@ -18,17 +18,17 @@ pub fn list(database: &FactureDatabase) -> Result<()> {
 }
 
 pub fn add(database: &FactureDatabase) -> Result<()> {
-    let organisation = ui::prompt_text("Organisation:")?;
-    let name = ui::prompt_text("Name:")?;
-    let surname = ui::prompt_text("Surname:")?;
-    let email = ui::prompt_skipable_text("Email:")?;
-    let phone = ui::prompt_skipable_text("Phone:")?;
+    let organisation = prompt::text("Organisation:")?;
+    let name = prompt::text("Name:")?;
+    let surname = prompt::text("Surname:")?;
+    let email = prompt::skipable_text("Email:")?;
+    let phone = prompt::skipable_text("Phone:")?;
 
-    let country = ui::prompt_text("Country:")?;
-    let city = ui::prompt_text("City:")?;
-    let postal_code = ui::prompt_text("Postal Code:")?;
-    let street = ui::prompt_text("Street:")?;
-    let number = ui::prompt_text("House number:")?;
+    let country = prompt::text("Country:")?;
+    let city = prompt::text("City:")?;
+    let postal_code = prompt::text("Postal Code:")?;
+    let street = prompt::text("Street:")?;
+    let number = prompt::text("House number:")?;
 
     let contact = Contact::builder()
         .name(name)
@@ -57,8 +57,8 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
 
 pub fn remove(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
-    let customer = ui::prompt_select("Choose a customer to delete", customers)?;
-    let result = ui::promt_confirm("This will also delete all invoices")?;
+    let customer = prompt::select("Choose a customer to delete", customers)?;
+    let result = prompt::confirm("This will also delete all invoices")?;
 
     if !result {
         println!("Aborted!");
@@ -73,10 +73,10 @@ pub fn remove(database: &FactureDatabase) -> Result<()> {
 
 pub fn edit(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
-    let customer = ui::prompt_select("Choose a customer to edit", customers)?;
+    let customer = prompt::select("Choose a customer to edit", customers)?;
     let customer_as_yaml = serde_yaml::to_string(&customer)?;
     let customer_as_yaml_edited =
-        ui::prompt_editor("Open editor to edit customer", &customer_as_yaml, ".yaml")?;
+        prompt::editor("Open editor to edit customer", &customer_as_yaml, ".yaml")?;
     let customer_edited: Customer = serde_yaml::from_str(&customer_as_yaml_edited)?;
     database.update(&customer_edited.uuid, &customer_edited)?;
     println!("Customer edited");
@@ -84,7 +84,7 @@ pub fn edit(database: &FactureDatabase) -> Result<()> {
 }
 pub fn show(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
-    let customer = ui::prompt_select("Choose an invoice to edit", customers)?;
+    let customer = prompt::select("Choose an invoice to edit", customers)?;
     let customer_as_yaml = customer.to_yaml()?;
     println!("{customer_as_yaml}");
     Ok(())

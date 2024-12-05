@@ -5,7 +5,7 @@ use crate::{
         invoice::{Invoice, Item},
         YamlAble,
     },
-    ui::{self, Tableable},
+    ui::{self, prompt, Tableable},
 };
 use anyhow::{anyhow, Result};
 use chrono::Local;
@@ -21,14 +21,14 @@ pub fn list(database: &FactureDatabase) -> Result<()> {
 
 pub fn add(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
-    let mut customer = ui::prompt_select("Choose a customer to add the invoice", customers)?;
+    let mut customer = prompt::select("Choose a customer to add the invoice", customers)?;
     let mut items: Vec<Item> = Default::default();
     let mut abort = false;
 
     while !abort {
-        let description = ui::prompt_text("Description:")?;
-        let price = ui::prompt_text("Price:")?;
-        let quantity = ui::prompt_skipable_text("Quantity:")?;
+        let description = prompt::text("Description:")?;
+        let price = prompt::text("Price:")?;
+        let quantity = prompt::skipable_text("Quantity:")?;
         let quantity: Option<u32> = quantity.map(|quantity| quantity.parse().unwrap_or_default());
         let item = Item::builder()
             .description(description)
@@ -36,7 +36,7 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
             .maybe_quantity(quantity)
             .build();
         items.push(item);
-        abort = !ui::promt_confirm("Do you want to add another item")?;
+        abort = !prompt::confirm("Do you want to add another item")?;
     }
 
     let date = Local::now().date_naive();
@@ -55,7 +55,7 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
 
 pub fn remove(database: &FactureDatabase) -> Result<()> {
     let invoices: Vec<Invoice> = database.read_all()?;
-    let invoice = ui::prompt_select("Choose a invoice to delete", invoices)?;
+    let invoice = prompt::select("Choose a invoice to delete", invoices)?;
     let mut customer: Customer = database
         .read(&invoice.customer)?
         .ok_or_else(|| anyhow!("{} not found", &invoice.customer))?;
@@ -68,10 +68,10 @@ pub fn remove(database: &FactureDatabase) -> Result<()> {
 
 pub fn edit(database: &FactureDatabase) -> Result<()> {
     let invoices: Vec<Invoice> = database.read_all()?;
-    let invoice = ui::prompt_select("Choose an invoice to edit", invoices)?;
+    let invoice = prompt::select("Choose an invoice to edit", invoices)?;
     let invoice_as_yaml = serde_yaml::to_string(&invoice)?;
     let invoice_as_yaml_edited =
-        ui::prompt_editor("Open editor to edit invoice", &invoice_as_yaml, ".yaml")?;
+        prompt::editor("Open editor to edit invoice", &invoice_as_yaml, ".yaml")?;
     let invoice_edited: Invoice = serde_yaml::from_str(&invoice_as_yaml_edited)?;
     database.update(&invoice_edited.uuid, &invoice_edited)?;
     println!("Invoice edited");
@@ -80,7 +80,7 @@ pub fn edit(database: &FactureDatabase) -> Result<()> {
 
 pub fn show(database: &FactureDatabase) -> Result<()> {
     let invoices: Vec<Invoice> = database.read_all()?;
-    let invoice = ui::prompt_select("Choose an invoice to edit", invoices)?;
+    let invoice = prompt::select("Choose an invoice to edit", invoices)?;
     let invoice_as_yaml = invoice.to_yaml()?;
     println!("{invoice_as_yaml}");
     Ok(())
