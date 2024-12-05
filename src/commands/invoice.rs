@@ -1,6 +1,10 @@
 use crate::{
     database::FactureDatabase,
-    models::{Customer, Invoice, Item},
+    models::{
+        customer::Customer,
+        invoice::{Invoice, Item},
+        YamlAble,
+    },
     ui::{self, Tableable},
 };
 use anyhow::{anyhow, Result};
@@ -41,8 +45,7 @@ pub fn add(database: &FactureDatabase) -> Result<()> {
         .date(date)
         .items(items)
         .build();
-
-    customer.invoices.push(invoice.uuid.clone());
+    customer.add_invoice(&invoice.uuid);
     database.update(&customer.uuid, &customer)?;
     database.insert(&invoice)?;
     println!("Invoice created");
@@ -78,7 +81,7 @@ pub fn edit(database: &FactureDatabase) -> Result<()> {
 pub fn show(database: &FactureDatabase) -> Result<()> {
     let invoices: Vec<Invoice> = database.read_all()?;
     let invoice = ui::prompt_select("Choose an invoice to edit", invoices)?;
-    let invoice_as_yaml = serde_yaml::to_string(&invoice)?;
+    let invoice_as_yaml = invoice.to_yaml()?;
     println!("{invoice_as_yaml}");
     Ok(())
 }

@@ -1,6 +1,9 @@
 use crate::{
     database::FactureDatabase,
-    models::{Address, Contact, Customer},
+    models::{
+        customer::{Address, Contact, Customer},
+        YamlAble,
+    },
     ui::{self, Tableable},
 };
 use anyhow::Result;
@@ -82,7 +85,7 @@ pub fn edit(database: &FactureDatabase) -> Result<()> {
 pub fn show(database: &FactureDatabase) -> Result<()> {
     let customers: Vec<Customer> = database.read_all()?;
     let customer = ui::prompt_select("Choose an invoice to edit", customers)?;
-    let customer_as_yaml = serde_yaml::to_string(&customer)?;
+    let customer_as_yaml = customer.to_yaml()?;
     println!("{customer_as_yaml}");
     Ok(())
 }

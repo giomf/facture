@@ -1,4 +1,5 @@
-use crate::models::{Customer, Invoice};
+use crate::models::customer::Customer;
+use crate::models::invoice::Invoice;
 use anyhow::Result;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, ContentArrangement, Table};
 use inquire::{
@@ -29,6 +30,7 @@ impl Tableable for Vec<Customer> {
             "Surname".to_owned(),
             "Email".to_owned(),
             "Phone".to_owned(),
+            "Invoices".to_owned(),
         ]
     }
 
@@ -42,6 +44,7 @@ impl Tableable for Vec<Customer> {
                     customer.contact.surname,
                     customer.contact.email.unwrap_or_else(|| "n/a".to_owned()),
                     customer.contact.phone.unwrap_or_else(|| "n/a".to_owned()),
+                    customer.invoices.len().to_string(),
                 ]
             })
             .collect()
