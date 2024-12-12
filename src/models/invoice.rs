@@ -1,29 +1,40 @@
-use bon::Builder;
-use chrono::NaiveDate;
-use native_db::*;
-use native_model::{native_model, Model};
+use super::uuid_v7;
+use crate::filesystem_database::Model;
+use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
-use super::{uuid, YamlAble};
+const TABLE_NAME: &str = "invoices";
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
-#[native_model(id = 2, version = 1)]
-#[native_db]
-#[builder(on(String, into))]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 pub struct Invoice {
-    #[primary_key]
-    #[builder(default = uuid())]
     pub uuid: String,
+    pub id: String,
     pub date: NaiveDate,
     pub customer: String,
     pub items: Vec<Item>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
 pub struct Item {
     pub description: String,
     pub price: u32,
     pub quantity: Option<u32>,
 }
 
-impl YamlAble for Invoice {}
+impl Invoice {
+    pub fn new_with_uuid(id: usize) -> Self {
+        Self {
+            uuid: uuid_v7(),
+            id: format!("K{:05}", id),
+            date: Local::now().date_naive(),
+            items: vec![Item::default()],
+            ..Default::default()
+        }
+    }
+}
+
+impl Model for Invoice {
+    fn table() -> String {
+        TABLE_NAME.to_owned()
+    }
+}

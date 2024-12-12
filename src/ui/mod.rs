@@ -5,12 +5,12 @@ use crate::models::invoice::Invoice;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, ContentArrangement, Table};
 use std::fmt::Display;
 
-pub trait Tableable {
+pub trait TableAble {
     fn header() -> Vec<String>;
-    fn rows(&self) -> Vec<Vec<String>>;
+    fn row(self) -> Vec<String>;
 }
 
-impl Tableable for Vec<Customer> {
+impl TableAble for Customer {
     fn header() -> Vec<String> {
         vec![
             "Business".to_owned(),
@@ -22,32 +22,25 @@ impl Tableable for Vec<Customer> {
         ]
     }
 
-    fn rows(&self) -> Vec<Vec<String>> {
-        self.into_iter()
-            .map(|customer| {
-                let customer = customer.clone();
-                vec![
-                    customer.organisation,
-                    customer.contact.name,
-                    customer.contact.surname,
-                    customer.contact.email.unwrap_or_else(|| "n/a".to_owned()),
-                    customer.contact.phone.unwrap_or_else(|| "n/a".to_owned()),
-                    customer.invoices.len().to_string(),
-                ]
-            })
-            .collect()
+    fn row(self) -> Vec<String> {
+        vec![
+            self.organisation,
+            self.contact.name,
+            self.contact.surname,
+            self.contact.email.unwrap_or_else(|| "n/a".to_owned()),
+            self.contact.phone.unwrap_or_else(|| "n/a".to_owned()),
+            self.invoices.len().to_string(),
+        ]
     }
 }
 
-impl Tableable for Vec<Invoice> {
+impl TableAble for Invoice {
     fn header() -> Vec<String> {
         vec!["Customer".to_owned(), "Date".to_owned()]
     }
 
-    fn rows(&self) -> Vec<Vec<String>> {
-        self.into_iter()
-            .map(|invoice| vec![invoice.customer.clone(), invoice.date.clone().to_string()])
-            .collect()
+    fn row(self) -> Vec<String> {
+        vec![self.customer, self.date.to_string()]
     }
 }
 

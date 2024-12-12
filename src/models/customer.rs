@@ -1,48 +1,32 @@
-use bon::Builder;
-use native_db::*;
-use native_model::{native_model, Model};
+use super::{uuid_v7, Address, Contact};
+use crate::filesystem_database::Model;
 use serde::{Deserialize, Serialize};
 
-use super::{uuid, YamlAble};
+const TABLE_NAME: &str = "customers";
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
-#[native_model(id = 1, version = 1)]
-#[native_db]
-#[builder(on(String, into))]
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
 pub struct Customer {
-    #[builder(default = uuid())]
-    #[primary_key]
     pub uuid: String,
+    pub id: String,
     pub organisation: String,
     pub contact: Contact,
     pub address: Address,
-    #[builder(skip)]
     pub invoices: Vec<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
-pub struct Address {
-    pub country: String,
-    pub city: String,
-    pub postal_code: String,
-    pub street: String,
-    pub number: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Builder, Clone, PartialEq, Eq)]
-pub struct Contact {
-    pub name: String,
-    pub surname: String,
-    pub email: Option<String>,
-    pub phone: Option<String>,
-}
-
-impl YamlAble for Customer {}
-
 impl Customer {
+    pub fn new_with_uuid(id: usize) -> Self {
+        Self {
+            uuid: uuid_v7(),
+            id: format!("K{:05}", id),
+            ..Default::default()
+        }
+    }
+
     pub fn add_invoice(&mut self, invoice_id: &str) {
         self.invoices.push(invoice_id.to_owned());
     }
+
     pub fn remove_invoice(&mut self, invoice_id: &str) {
         let new_invoices: Vec<_> = self
             .invoices
@@ -51,5 +35,11 @@ impl Customer {
             .filter(|current_invoice_id| *current_invoice_id == invoice_id)
             .collect();
         self.invoices = new_invoices;
+    }
+}
+
+impl Model for Customer {
+    fn table() -> String {
+        TABLE_NAME.to_owned()
     }
 }

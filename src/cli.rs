@@ -19,6 +19,8 @@ pub enum Commands {
     Customer(ItemCommand),
     #[command(subcommand)]
     Invoice(ItemCommand),
+    #[command(subcommand)]
+    Business(BusinessCommand),
 }
 
 #[derive(Subcommand, Debug)]
@@ -27,5 +29,12 @@ pub enum ItemCommand {
     Edit,
     List,
     Remove,
+    Show,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum BusinessCommand {
+    Init,
+    Edit,
     Show,
 }

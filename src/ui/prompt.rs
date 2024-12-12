@@ -14,22 +14,25 @@ static RENDER_CONFIG: LazyLock<RenderConfig> = LazyLock::new(|| {
         ))
 });
 
-pub fn text(message: &str) -> Result<String> {
+pub fn _text(message: &str, help_message: Option<&str>) -> Result<String> {
     let validator = ValueRequiredValidator::new("A value is required for this field");
+    let help_message = help_message.unwrap_or_default();
     let text = Text::new(message)
         .with_render_config(*RENDER_CONFIG)
         .with_validator(validator)
+        .with_help_message(help_message)
         .prompt()?;
     Ok(text)
 }
 
-pub fn skipable_text(message: &str) -> Result<Option<String>> {
+pub fn _skipable_text(message: &str, help_message: Option<&str>) -> Result<Option<String>> {
     let validator =
         ValueRequiredValidator::new("A value is required for this field. Skip it with ESC");
+    let help_message = help_message.unwrap_or_default();
     let text = Text::new(message)
         .with_render_config(*RENDER_CONFIG)
         .with_validator(validator)
-        .with_help_message("This field is optional - Skip it with ESC")
+        .with_help_message(help_message)
         .prompt_skippable()?;
     Ok(text)
 }
