@@ -1,5 +1,8 @@
-use super::{YamlAble, CONFIG_TABLE_NAME};
-use crate::{commands::CRUD, filesystem_database::Model};
+use super::CONFIG_TABLE_NAME;
+use crate::{
+    commands::CRUD,
+    filesystem_database::{Model, YamlAble},
+};
 use serde::{Deserialize, Serialize};
 
 const CUSTOMER_PREFIX_DEFAULT: &str = "C";

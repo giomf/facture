@@ -4,8 +4,8 @@ pub mod invoice;
 
 use crate::{
     cli::{BusinessCommand, ItemCommand},
-    filesystem_database::{FilesystemDatabase, Model},
-    models::{business::Business, config::Config, customer::Customer, invoice::Invoice, YamlAble},
+    filesystem_database::{FilesystemDatabase, Model, YamlAble},
+    models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
     ui::{self, prompt, TableAble},
 };
 use anyhow::Result;

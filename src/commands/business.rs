@@ -1,5 +1,5 @@
 use super::CRUD;
-use crate::models::{business::Business, YamlAble};
+use crate::{filesystem_database::YamlAble, models::business::Business};
 
 impl YamlAble for Business {}
 impl CRUD for Business {}

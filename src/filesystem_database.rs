@@ -3,7 +3,7 @@ use std::{fs, io, path::PathBuf};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-pub trait Model: Serialize + DeserializeOwned {
+pub trait Model: Serialize + DeserializeOwned + YamlAble {
     fn table() -> String;
 }
 
@@ -12,8 +12,8 @@ pub enum Error {
     #[error("I/O error")]
     IO(#[from] io::Error),
 
-    #[error("Serialization error")]
-    Serialization(#[from] serde_yaml::Error),
+    #[error("Deserialization or Serialization error")]
+    DeOrSerialization(#[from] serde_yml::Error),
 
     #[error("Table \"{0}\" not found")]
     TableNotFound(String),
@@ -30,12 +30,24 @@ pub struct FilesystemDatabase {
     path: PathBuf,
 }
 
+pub trait YamlAble: Serialize + DeserializeOwned {
+    fn to_yaml(&self) -> Result<String> {
+        let yaml = serde_yml::to_string(&self)?;
+        Ok(yaml)
+    }
+
+    fn from_yaml(yaml: &str) -> Result<Self> {
+        let object: Self = serde_yml::from_str(yaml)?;
+        Ok(object)
+    }
+}
+
 impl FilesystemDatabase {
     pub fn new(path: PathBuf) -> Self {
         Self { path }
     }
 
-    pub fn define<T: Serialize + DeserializeOwned + Model>(&self) -> Result<()> {
+    pub fn define<T: Model>(&self) -> Result<()> {
         let path = self.path.join(T::table());
         if !path.exists() {
             fs::create_dir_all(path)?;
@@ -54,7 +66,7 @@ impl FilesystemDatabase {
             return Err(Error::KeyAlreadyExists(key.to_owned()));
         }
 
-        let yaml = serde_yaml::to_string(&value)?;
+        let yaml = value.to_yaml()?;
         fs::write(path, yaml)?;
         Ok(())
     }
@@ -71,7 +83,7 @@ impl FilesystemDatabase {
         }
 
         let value = fs::read_to_string(path)?;
-        let value = serde_yaml::from_str(&value)?;
+        let value = T::from_yaml(&value)?;
         Ok(value)
     }
 
@@ -86,7 +98,7 @@ impl FilesystemDatabase {
             return Err(Error::KeyNotFound(key.to_owned()));
         }
 
-        let yaml = serde_yaml::to_string(&value)?;
+        let yaml = value.to_yaml()?;
         fs::write(path, yaml)?;
         Ok(())
     }
@@ -128,7 +140,7 @@ impl FilesystemDatabase {
             let entry = entry?;
             if entry.file_type()?.is_file() {
                 let value = fs::read_to_string(entry.path())?;
-                let value: T = serde_yaml::from_str(&value)?;
+                let value = T::from_yaml(&value)?;
                 values.push(value);
             }
         }

@@ -3,23 +3,10 @@ pub mod config;
 pub mod customer;
 pub mod invoice;
 
-use anyhow::Result;
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 const CONFIG_TABLE_NAME: &str = "config";
-
-pub trait YamlAble: Serialize + DeserializeOwned {
-    fn to_yaml(&self) -> Result<String> {
-        let yaml = serde_yaml::to_string(&self)?;
-        Ok(yaml)
-    }
-
-    fn from_yaml(yaml: &str) -> Result<Self> {
-        let object: Self = serde_yaml::from_str(yaml)?;
-        Ok(object)
-    }
-}
 
 #[derive(Serialize, Default, Deserialize, Debug, Clone)]
 pub struct Address {
