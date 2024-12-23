@@ -30,7 +30,7 @@ pub trait ListAble: Model + TableAble {
     }
 }
 
-pub trait CRUD: Clone + Model + YamlAble {
+pub trait CRUD: Clone + Model {
     fn create(database: &FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
         let new_object = edit_object_in_temp_file(object)?;
         database.create(key, new_object.clone())?;
@@ -163,12 +163,18 @@ pub fn handle_business_command(
 ) -> Result<()> {
     match command {
         BusinessCommand::Init => {
+            if database.exists::<Config>(CONFIG_KEY)? {
+                println!("Config already created");
+                return Ok(());
+            }
             if database.exists::<Business>(BUSINESS_KEY)? {
                 println!("Business already created");
                 return Ok(());
             }
             let business = Business::default();
             Business::create(&database, &business, BUSINESS_KEY)?;
+            let config = Config::default();
+            Config::create(&database, &config, CONFIG_KEY)?;
         }
         BusinessCommand::Edit => {
             let business = database.read::<Business>(BUSINESS_KEY)?;
