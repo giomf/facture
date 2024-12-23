@@ -10,7 +10,7 @@ use crate::{
 };
 use anyhow::Result;
 use std::{env, fs, process::Command};
-use tempfile::NamedTempFile;
+use tempfile::Builder;
 
 const BUSINESS_KEY: &str = "business";
 const CONFIG_KEY: &str = "config";
@@ -61,7 +61,10 @@ pub trait CRUD: Clone + Model {
 
 fn edit_object_in_temp_file<T: YamlAble>(object: &T) -> Result<T> {
     let object_yaml = object.to_yaml()?;
-    let temp_file = NamedTempFile::new()?;
+    let temp_file = Builder::new()
+        .prefix("facture_")
+        .suffix(".yaml")
+        .tempfile()?;
     fs::write(temp_file.path(), object_yaml)?;
     let editor = env::var("EDITOR")?;
     Command::new(editor).arg(temp_file.path()).status()?;
