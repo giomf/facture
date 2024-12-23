@@ -3,7 +3,7 @@ pub mod customer;
 pub mod invoice;
 
 use crate::{
-    cli::{BusinessCommand, ItemCommand},
+    cli::{BusinessCommand, ConfigCommand, ItemCommand},
     filesystem_database::{FilesystemDatabase, Model, YamlAble},
     models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
     ui::{self, prompt, TableAble},
@@ -185,5 +185,20 @@ pub fn handle_business_command(
             Business::show(&business)?;
         }
     }
+    Ok(())
+}
+
+pub fn handle_config_command(command: &ConfigCommand, database: FilesystemDatabase) -> Result<()> {
+    match command {
+        ConfigCommand::Edit => {
+            let config = database.read::<Config>(CONFIG_KEY)?;
+            Config::edit(&database, &config, CONFIG_KEY)?;
+        }
+        ConfigCommand::Show => {
+            let config = database.read::<Config>(CONFIG_KEY)?;
+            Config::show(&config)?;
+        }
+    }
+
     Ok(())
 }
