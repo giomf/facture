@@ -9,6 +9,8 @@ use crate::{
     ui::{self, prompt, TableAble},
 };
 use anyhow::Result;
+use std::{env, fs, process::Command};
+use tempfile::NamedTempFile;
 
 const BUSINESS_KEY: &str = "business";
 
@@ -28,17 +30,11 @@ pub trait ListAble: Model + TableAble {
 }
 
 pub trait CRUD: Clone + Model + YamlAble {
-    fn create(database: FilesystemDatabase, object: &Self, key: &str, name: &str) -> Result<()> {
-        let object_yaml = object.to_yaml()?;
-        let object_yaml = prompt::editor(
-            &format!("Open editor to create {name}"),
-            &object_yaml,
-            ".yaml",
-        )?;
-        let object = Self::from_yaml(&object_yaml)?;
-        database.create(key, object.clone())?;
-        let object_yaml = object.to_yaml()?;
-        println!("\n{object_yaml}");
+    fn create(database: FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
+        let new_object = edit_object_in_temp_file(object)?;
+        database.create(key, new_object.clone())?;
+        let new_object_yaml = new_object.to_yaml()?;
+        println!("\n{new_object_yaml}");
         Ok(())
     }
 
@@ -48,14 +44,8 @@ pub trait CRUD: Clone + Model + YamlAble {
         Ok(())
     }
 
-    fn edit(database: FilesystemDatabase, object: &Self, key: &str, name: &str) -> Result<()> {
-        let object_yaml = object.to_yaml()?;
-        let new_object_yaml = prompt::editor(
-            &format!("Open editor to edit {name}"),
-            &object_yaml,
-            ".yaml",
-        )?;
-        let new_object = Self::from_yaml(&new_object_yaml)?;
+    fn edit(database: FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
+        let new_object = edit_object_in_temp_file(object)?;
         database.update(key, new_object.clone())?;
         let new_object_yaml = new_object.to_yaml()?;
         println!("\n{new_object_yaml}");
@@ -68,6 +58,17 @@ pub trait CRUD: Clone + Model + YamlAble {
     }
 }
 
+fn edit_object_in_temp_file<T: YamlAble>(object: &T) -> Result<T> {
+    let object_yaml = object.to_yaml()?;
+    let temp_file = NamedTempFile::new()?;
+    fs::write(temp_file.path(), object_yaml)?;
+    let editor = env::var("EDITOR")?;
+    Command::new(editor).arg(temp_file.path()).status()?;
+    let object_yaml = fs::read_to_string(temp_file.path())?;
+    let new_object = T::from_yaml(&object_yaml)?;
+    Ok(new_object)
+}
+
 pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDatabase) -> Result<()> {
     let name = "customer";
 
@@ -75,20 +76,32 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
         ItemCommand::List => Customer::list(database)?,
         ItemCommand::Add => {
             let customer = Customer::new_with_uuid(0);
-            Customer::create(database, &customer, &customer.uuid, name)?;
+            Customer::create(database, &customer, &customer.uuid)?;
         }
         ItemCommand::Remove => {
             let customers: Vec<Customer> = database.read_all()?;
+            if customers.is_empty() {
+                println!("No customers created yet");
+                return Ok(());
+            }
             let customer = prompt::select(&format!("Select a {name} to remove"), customers)?;
             Customer::remove(database, &customer.uuid)?;
         }
         ItemCommand::Edit => {
             let customers: Vec<Customer> = database.read_all()?;
+            if customers.is_empty() {
+                println!("No customers created yet");
+                return Ok(());
+            }
             let customer = prompt::select(&format!("Select a {name} to edit"), customers)?;
-            Customer::edit(database, &customer, &customer.uuid, name)?;
+            Customer::edit(database, &customer, &customer.uuid)?;
         }
         ItemCommand::Show => {
             let customers: Vec<Customer> = database.read_all()?;
+            if customers.is_empty() {
+                println!("No customers created yet");
+                return Ok(());
+            }
             let customer = prompt::select(&format!("Select a {name} to show"), customers)?;
             Customer::show(&customer)?;
         }
@@ -102,20 +115,33 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
         ItemCommand::List => Invoice::list(database)?,
         ItemCommand::Add => {
             let invoice = Invoice::new_with_uuid(0);
-            Invoice::create(database, &invoice, &invoice.uuid, name)?;
+            Invoice::create(database, &invoice, &invoice.uuid)?;
         }
         ItemCommand::Remove => {
             let invoices: Vec<Invoice> = database.read_all()?;
+            if invoices.is_empty() {
+                println!("No invoices created yet");
+                return Ok(());
+            }
             let invoice = prompt::select(&format!("Select a {name} to remove"), invoices)?;
             Invoice::remove(database, &invoice.uuid)?;
         }
         ItemCommand::Edit => {
             let invoices: Vec<Invoice> = database.read_all()?;
+            if invoices.is_empty() {
+                println!("No invoices created yet");
+                return Ok(());
+            }
+
             let invoice = prompt::select(&format!("Select a {name} to edit"), invoices)?;
-            Invoice::edit(database, &invoice, &invoice.uuid, name)?;
+            Invoice::edit(database, &invoice, &invoice.uuid)?;
         }
         ItemCommand::Show => {
             let invoices: Vec<Invoice> = database.read_all()?;
+            if invoices.is_empty() {
+                println!("No invoices created yet");
+                return Ok(());
+            }
             let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
             Invoice::show(&invoice)?;
         }
@@ -127,7 +153,6 @@ pub fn handle_business_command(
     command: &BusinessCommand,
     database: FilesystemDatabase,
 ) -> Result<()> {
-    let name = "business";
     match command {
         BusinessCommand::Init => {
             if database.exists::<Business>(BUSINESS_KEY)? {
@@ -135,11 +160,11 @@ pub fn handle_business_command(
                 return Ok(());
             }
             let business = Business::default();
-            Business::create(database, &business, BUSINESS_KEY, name)?;
+            Business::create(database, &business, BUSINESS_KEY)?;
         }
         BusinessCommand::Edit => {
             let business = database.read::<Business>(BUSINESS_KEY)?;
-            Business::edit(database, &business, BUSINESS_KEY, name)?;
+            Business::edit(database, &business, BUSINESS_KEY)?;
         }
         BusinessCommand::Show => {
             let business = database.read::<Business>(BUSINESS_KEY)?;

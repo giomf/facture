@@ -25,7 +25,7 @@ impl Invoice {
     pub fn new_with_uuid(id: usize) -> Self {
         Self {
             uuid: uuid_v7(),
-            id: format!("K{:05}", id),
+            id: format!("R{:05}", id),
             date: Local::now().date_naive(),
             items: vec![Item::default()],
             ..Default::default()

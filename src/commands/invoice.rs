@@ -1,33 +1,28 @@
+use super::{ListAble, CRUD};
 use crate::{
+    commands::edit_object_in_temp_file,
     filesystem_database::FilesystemDatabase,
     models::{customer::Customer, invoice::Invoice, YamlAble},
     ui::prompt,
 };
 use anyhow::Result;
 
-use super::{ListAble, CRUD};
-
 impl YamlAble for Invoice {}
 impl ListAble for Invoice {}
 
 impl CRUD for Invoice {
-    fn create(database: FilesystemDatabase, invoice: &Self, key: &str, name: &str) -> Result<()> {
+    fn create(database: FilesystemDatabase, invoice: &Self, key: &str) -> Result<()> {
         let customers: Vec<Customer> = database.read_all()?;
         let mut customer =
             prompt::select(&format!("Choose an customer to add an invoice"), customers)?;
         let mut invoice = invoice.clone();
         invoice.customer = customer.uuid.clone();
-        let invoice_yaml = invoice.to_yaml()?;
-        let invoice_yaml = prompt::editor(
-            &format!("Open editor to edit {name}"),
-            &invoice_yaml,
-            ".yaml",
-        )?;
-        let invoice = Invoice::from_yaml(&invoice_yaml)?;
+        let invoice = edit_object_in_temp_file(&invoice)?;
         database.create(key, invoice.clone())?;
         let old_customer = customer.clone();
         customer.add_invoice(&invoice.uuid);
         database.update(&old_customer.uuid, customer)?;
+        let invoice_yaml = invoice.to_yaml()?;
         println!("\n{invoice_yaml}");
         Ok(())
     }

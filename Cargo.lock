@@ -264,6 +264,7 @@ dependencies = [
  "inquire",
  "serde",
  "serde_yaml",
+ "tempfile",
  "thiserror",
  "uuid",
 ]

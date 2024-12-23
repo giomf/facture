@@ -37,7 +37,7 @@ pub fn _skipable_text(message: &str, help_message: Option<&str>) -> Result<Optio
     Ok(text)
 }
 
-pub fn editor(message: &str, file_content: &str, file_extension: &str) -> Result<String> {
+pub fn _editor(message: &str, file_content: &str, file_extension: &str) -> Result<String> {
     let content = Editor::new(message)
         .with_predefined_text(file_content)
         .with_file_extension(file_extension)

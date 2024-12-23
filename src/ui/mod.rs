@@ -13,6 +13,7 @@ pub trait TableAble {
 impl TableAble for Customer {
     fn header() -> Vec<String> {
         vec![
+            "ID".to_owned(),
             "Business".to_owned(),
             "Name".to_owned(),
             "Surname".to_owned(),
@@ -24,6 +25,7 @@ impl TableAble for Customer {
 
     fn row(self) -> Vec<String> {
         vec![
+            self.id,
             self.organisation,
             self.contact.name,
             self.contact.surname,
@@ -36,11 +38,11 @@ impl TableAble for Customer {
 
 impl TableAble for Invoice {
     fn header() -> Vec<String> {
-        vec!["Customer".to_owned(), "Date".to_owned()]
+        vec!["ID".to_owned(), "Customer".to_owned(), "Date".to_owned()]
     }
 
     fn row(self) -> Vec<String> {
-        vec![self.customer, self.date.to_string()]
+        vec![self.id, self.customer, self.date.to_string()]
     }
 }
 
