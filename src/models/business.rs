@@ -1,8 +1,6 @@
-use super::{Address, Contact};
+use super::{Address, Contact, CONFIG_TABLE_NAME};
 use crate::filesystem_database::Model;
 use serde::{Deserialize, Serialize};
-
-const TABLE_NAME: &str = "config";
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Business {
@@ -19,6 +17,6 @@ pub struct Payment {
 }
 impl Model for Business {
     fn table() -> String {
-        TABLE_NAME.to_owned()
+        CONFIG_TABLE_NAME.to_owned()
     }
 }

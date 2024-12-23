@@ -25,6 +25,7 @@ pub enum Error {
     KeyNotFound(String),
 }
 
+#[derive(Debug, Clone)]
 pub struct FilesystemDatabase {
     path: PathBuf,
 }

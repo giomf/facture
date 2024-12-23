@@ -5,7 +5,7 @@ pub mod invoice;
 use crate::{
     cli::{BusinessCommand, ItemCommand},
     filesystem_database::{FilesystemDatabase, Model},
-    models::{business::Business, customer::Customer, invoice::Invoice, YamlAble},
+    models::{business::Business, config::Config, customer::Customer, invoice::Invoice, YamlAble},
     ui::{self, prompt, TableAble},
 };
 use anyhow::Result;
@@ -13,6 +13,7 @@ use std::{env, fs, process::Command};
 use tempfile::NamedTempFile;
 
 const BUSINESS_KEY: &str = "business";
+const CONFIG_KEY: &str = "config";
 
 pub trait ListAble: Model + TableAble {
     fn list(database: FilesystemDatabase) -> Result<()> {
@@ -30,7 +31,7 @@ pub trait ListAble: Model + TableAble {
 }
 
 pub trait CRUD: Clone + Model + YamlAble {
-    fn create(database: FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
+    fn create(database: &FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
         let new_object = edit_object_in_temp_file(object)?;
         database.create(key, new_object.clone())?;
         let new_object_yaml = new_object.to_yaml()?;
@@ -44,7 +45,7 @@ pub trait CRUD: Clone + Model + YamlAble {
         Ok(())
     }
 
-    fn edit(database: FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
+    fn edit(database: &FilesystemDatabase, object: &Self, key: &str) -> Result<()> {
         let new_object = edit_object_in_temp_file(object)?;
         database.update(key, new_object.clone())?;
         let new_object_yaml = new_object.to_yaml()?;
@@ -52,7 +53,7 @@ pub trait CRUD: Clone + Model + YamlAble {
         Ok(())
     }
 
-    fn remove(database: FilesystemDatabase, key: &str) -> Result<()> {
+    fn remove(database: &FilesystemDatabase, key: &str) -> Result<()> {
         database.delete::<Self>(key)?;
         Ok(())
     }
@@ -75,8 +76,12 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
     match command {
         ItemCommand::List => Customer::list(database)?,
         ItemCommand::Add => {
-            let customer = Customer::new_with_uuid(0);
-            Customer::create(database, &customer, &customer.uuid)?;
+            let mut config = database.read::<Config>(CONFIG_KEY)?;
+            let customer =
+                Customer::new_with_uuid(&config.customer_prefix, config.customer_counter);
+            Customer::create(&database, &customer, &customer.uuid)?;
+            config.customer_counter += 1;
+            database.update(CONFIG_KEY, config)?;
         }
         ItemCommand::Remove => {
             let customers: Vec<Customer> = database.read_all()?;
@@ -85,7 +90,7 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
                 return Ok(());
             }
             let customer = prompt::select(&format!("Select a {name} to remove"), customers)?;
-            Customer::remove(database, &customer.uuid)?;
+            Customer::remove(&database, &customer.uuid)?;
         }
         ItemCommand::Edit => {
             let customers: Vec<Customer> = database.read_all()?;
@@ -94,7 +99,7 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
                 return Ok(());
             }
             let customer = prompt::select(&format!("Select a {name} to edit"), customers)?;
-            Customer::edit(database, &customer, &customer.uuid)?;
+            Customer::edit(&database, &customer, &customer.uuid)?;
         }
         ItemCommand::Show => {
             let customers: Vec<Customer> = database.read_all()?;
@@ -114,8 +119,11 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
     match command {
         ItemCommand::List => Invoice::list(database)?,
         ItemCommand::Add => {
-            let invoice = Invoice::new_with_uuid(0);
-            Invoice::create(database, &invoice, &invoice.uuid)?;
+            let mut config = database.read::<Config>(CONFIG_KEY)?;
+            let invoice = Invoice::new_with_uuid(&config.invoice_prefix, config.invoice_counter);
+            Invoice::create(&database, &invoice, &invoice.uuid)?;
+            config.invoice_counter += 1;
+            database.update(CONFIG_KEY, config)?;
         }
         ItemCommand::Remove => {
             let invoices: Vec<Invoice> = database.read_all()?;
@@ -124,7 +132,7 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
                 return Ok(());
             }
             let invoice = prompt::select(&format!("Select a {name} to remove"), invoices)?;
-            Invoice::remove(database, &invoice.uuid)?;
+            Invoice::remove(&database, &invoice.uuid)?;
         }
         ItemCommand::Edit => {
             let invoices: Vec<Invoice> = database.read_all()?;
@@ -134,7 +142,7 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
             }
 
             let invoice = prompt::select(&format!("Select a {name} to edit"), invoices)?;
-            Invoice::edit(database, &invoice, &invoice.uuid)?;
+            Invoice::edit(&database, &invoice, &invoice.uuid)?;
         }
         ItemCommand::Show => {
             let invoices: Vec<Invoice> = database.read_all()?;
@@ -160,11 +168,11 @@ pub fn handle_business_command(
                 return Ok(());
             }
             let business = Business::default();
-            Business::create(database, &business, BUSINESS_KEY)?;
+            Business::create(&database, &business, BUSINESS_KEY)?;
         }
         BusinessCommand::Edit => {
             let business = database.read::<Business>(BUSINESS_KEY)?;
-            Business::edit(database, &business, BUSINESS_KEY)?;
+            Business::edit(&database, &business, BUSINESS_KEY)?;
         }
         BusinessCommand::Show => {
             let business = database.read::<Business>(BUSINESS_KEY)?;

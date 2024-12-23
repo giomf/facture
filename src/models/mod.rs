@@ -1,10 +1,13 @@
 pub mod business;
+pub mod config;
 pub mod customer;
 pub mod invoice;
 
 use anyhow::Result;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uuid::Uuid;
+
+const CONFIG_TABLE_NAME: &str = "config";
 
 pub trait YamlAble: Serialize + DeserializeOwned {
     fn to_yaml(&self) -> Result<String> {

@@ -11,7 +11,7 @@ impl YamlAble for Invoice {}
 impl ListAble for Invoice {}
 
 impl CRUD for Invoice {
-    fn create(database: FilesystemDatabase, invoice: &Self, key: &str) -> Result<()> {
+    fn create(database: &FilesystemDatabase, invoice: &Self, key: &str) -> Result<()> {
         let customers: Vec<Customer> = database.read_all()?;
         let mut customer =
             prompt::select(&format!("Choose an customer to add an invoice"), customers)?;
@@ -27,7 +27,7 @@ impl CRUD for Invoice {
         Ok(())
     }
 
-    fn remove(database: FilesystemDatabase, key: &str) -> Result<()> {
+    fn remove(database: &FilesystemDatabase, key: &str) -> Result<()> {
         let invoice = database.read::<Invoice>(key)?;
         let mut customer = database.read::<Customer>(&invoice.customer)?;
         customer.remove_invoice(&invoice.uuid);

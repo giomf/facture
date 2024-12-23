@@ -15,10 +15,10 @@ pub struct Customer {
 }
 
 impl Customer {
-    pub fn new_with_uuid(id: usize) -> Self {
+    pub fn new_with_uuid(prefix: &str, id: usize) -> Self {
         Self {
             uuid: uuid_v7(),
-            id: format!("K{:05}", id),
+            id: format!("{prefix}{:05}", id),
             ..Default::default()
         }
     }

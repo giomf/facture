@@ -10,7 +10,7 @@ impl YamlAble for Customer {}
 impl ListAble for Customer {}
 
 impl CRUD for Customer {
-    fn remove(database: FilesystemDatabase, key: &str) -> Result<()> {
+    fn remove(database: &FilesystemDatabase, key: &str) -> Result<()> {
         let result = prompt::confirm("This will also delete all invoices")?;
         if !result {
             println!("Aborted!");

@@ -22,10 +22,10 @@ pub struct Item {
 }
 
 impl Invoice {
-    pub fn new_with_uuid(id: usize) -> Self {
+    pub fn new_with_uuid(prefix: &str, id: usize) -> Self {
         Self {
             uuid: uuid_v7(),
-            id: format!("R{:05}", id),
+            id: format!("{prefix}{:05}", id),
             date: Local::now().date_naive(),
             items: vec![Item::default()],
             ..Default::default()
