@@ -106,6 +106,16 @@ impl FilesystemDatabase {
         Ok(())
     }
 
+    pub fn exists<T: Model>(&self, key: &str) -> Result<bool> {
+        let table = self.path.join(T::table());
+        if !table.exists() {
+            return Err(Error::TableNotFound(T::table()));
+        }
+
+        let path = table.join(format!("{key}.yaml"));
+        Ok(path.exists())
+    }
+
     pub fn read_all<T: Model>(&self) -> Result<Vec<T>> {
         let table = self.path.join(T::table());
         if !table.exists() {

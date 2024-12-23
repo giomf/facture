@@ -130,6 +130,10 @@ pub fn handle_business_command(
     let name = "business";
     match command {
         BusinessCommand::Init => {
+            if database.exists::<Business>(BUSINESS_KEY)? {
+                println!("Business already created");
+                return Ok(());
+            }
             let business = Business::default();
             Business::create(database, &business, BUSINESS_KEY, name)?;
         }
