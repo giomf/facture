@@ -1,9 +1,9 @@
 pub mod prompt;
 
-use crate::models::customer::Customer;
-use crate::models::invoice::Invoice;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, ContentArrangement, Table};
 use std::fmt::Display;
+
+use crate::database::models::{customer::Customer, invoice::Invoice};
 
 pub trait TableAble {
     fn header() -> Vec<String>;
@@ -26,7 +26,7 @@ impl TableAble for Customer {
     fn row(self) -> Vec<String> {
         vec![
             self.id,
-            self.organisation,
+            self.organization,
             self.contact.name,
             self.contact.surname,
             self.contact.email.unwrap_or_else(|| "n/a".to_owned()),
@@ -42,7 +42,7 @@ impl TableAble for Invoice {
     }
 
     fn row(self) -> Vec<String> {
-        vec![self.id, self.customer, self.date.to_string()]
+        vec![self.id, self.customer, self.issuing_date.to_string()]
     }
 }
 
@@ -50,7 +50,7 @@ impl Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&format!(
             "{} - {} {}",
-            self.organisation, self.contact.name, self.contact.surname
+            self.organization, self.contact.name, self.contact.surname
         ))
     }
 }

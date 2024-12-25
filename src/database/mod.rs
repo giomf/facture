@@ -1,3 +1,5 @@
+pub mod models;
+
 use serde::{de::DeserializeOwned, Serialize};
 use std::{fs, io, path::PathBuf};
 

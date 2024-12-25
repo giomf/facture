@@ -1,7 +1,7 @@
 mod cli;
 mod commands;
-mod filesystem_database;
-mod models;
+mod database;
+mod renderer;
 mod ui;
 
 use std::{path::PathBuf, str::FromStr};
@@ -12,15 +12,14 @@ use cli::Cli;
 use commands::{
     handle_business_command, handle_config_command, handle_customer_command, handle_invoice_command,
 };
-use filesystem_database::FilesystemDatabase;
+use database::FilesystemDatabase;
+
+const DATABASE_PATH: &str = "database";
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
-    let path = PathBuf::from_str("./database")?;
+    let path = PathBuf::from_str(DATABASE_PATH)?;
     let database = FilesystemDatabase::new(path);
-    database.define::<models::business::Business>()?;
-    database.define::<models::customer::Customer>()?;
-    database.define::<models::invoice::Invoice>()?;
 
     match &cli.command {
         cli::Commands::Customer(command) => handle_customer_command(command, database)?,

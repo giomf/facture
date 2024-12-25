@@ -1,7 +1,7 @@
 use super::CONFIG_TABLE_NAME;
 use crate::{
     commands::CRUD,
-    filesystem_database::{Model, YamlAble},
+    database::{Model, YamlAble},
 };
 use serde::{Deserialize, Serialize};
 

@@ -1,5 +1,6 @@
+use crate::database::Model;
+
 use super::uuid_v7;
-use crate::filesystem_database::Model;
 use chrono::{Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +10,8 @@ const TABLE_NAME: &str = "invoices";
 pub struct Invoice {
     pub uuid: String,
     pub id: String,
-    pub date: NaiveDate,
+    pub issuing_date: NaiveDate,
+    pub delivery_date: NaiveDate,
     pub customer: String,
     pub items: Vec<Item>,
 }
@@ -23,10 +25,12 @@ pub struct Item {
 
 impl Invoice {
     pub fn new_with_uuid(prefix: &str, id: usize) -> Self {
+        let date = Local::now().date_naive();
         Self {
             uuid: uuid_v7(),
             id: format!("{prefix}{:05}", id),
-            date: Local::now().date_naive(),
+            issuing_date: date,
+            delivery_date: date,
             items: vec![Item::default()],
             ..Default::default()
         }

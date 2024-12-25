@@ -1,5 +1,6 @@
+use crate::database::Model;
+
 use super::{uuid_v7, Address, Contact};
-use crate::filesystem_database::Model;
 use serde::{Deserialize, Serialize};
 
 const TABLE_NAME: &str = "customers";
@@ -8,7 +9,8 @@ const TABLE_NAME: &str = "customers";
 pub struct Customer {
     pub uuid: String,
     pub id: String,
-    pub organisation: String,
+    pub organization: String,
+    pub vat_id: String,
     pub contact: Contact,
     pub address: Address,
     pub invoices: Vec<String>,

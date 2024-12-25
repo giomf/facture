@@ -1,8 +1,10 @@
 use super::{ListAble, CRUD};
 use crate::{
     commands::edit_object_in_temp_file,
-    filesystem_database::{FilesystemDatabase, YamlAble},
-    models::{customer::Customer, invoice::Invoice},
+    database::{
+        models::{customer::Customer, invoice::Invoice},
+        FilesystemDatabase, YamlAble,
+    },
     ui::prompt,
 };
 use anyhow::Result;

@@ -16,9 +16,9 @@ pub struct Cli {
 #[derive(Subcommand, Debug)]
 pub enum Commands {
     #[command(subcommand)]
-    Customer(ItemCommand),
+    Customer(CustomerCommand),
     #[command(subcommand)]
-    Invoice(ItemCommand),
+    Invoice(InvoiceCommand),
     #[command(subcommand)]
     Business(BusinessCommand),
     #[command(subcommand)]
@@ -26,12 +26,22 @@ pub enum Commands {
 }
 
 #[derive(Subcommand, Debug)]
-pub enum ItemCommand {
+pub enum CustomerCommand {
     Add,
     Edit,
     List,
     Remove,
     Show,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum InvoiceCommand {
+    Add,
+    Edit,
+    List,
+    Remove,
+    Show,
+    Render,
 }
 
 #[derive(Subcommand, Debug)]

@@ -3,9 +3,12 @@ pub mod customer;
 pub mod invoice;
 
 use crate::{
-    cli::{BusinessCommand, ConfigCommand, ItemCommand},
-    filesystem_database::{FilesystemDatabase, Model, YamlAble},
-    models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
+    cli::{BusinessCommand, ConfigCommand, CustomerCommand, InvoiceCommand},
+    database::{
+        models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
+        FilesystemDatabase, Model, YamlAble,
+    },
+    renderer::{self},
     ui::{self, prompt, TableAble},
 };
 use anyhow::Result;
@@ -73,12 +76,15 @@ fn edit_object_in_temp_file<T: YamlAble>(object: &T) -> Result<T> {
     Ok(new_object)
 }
 
-pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDatabase) -> Result<()> {
+pub fn handle_customer_command(
+    command: &CustomerCommand,
+    database: FilesystemDatabase,
+) -> Result<()> {
     let name = "customer";
 
     match command {
-        ItemCommand::List => Customer::list(database)?,
-        ItemCommand::Add => {
+        CustomerCommand::List => Customer::list(database)?,
+        CustomerCommand::Add => {
             let mut config = database.read::<Config>(CONFIG_KEY)?;
             let customer =
                 Customer::new_with_uuid(&config.customer_prefix, config.customer_counter);
@@ -86,7 +92,7 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
             config.customer_counter += 1;
             database.update(CONFIG_KEY, config)?;
         }
-        ItemCommand::Remove => {
+        CustomerCommand::Remove => {
             let customers: Vec<Customer> = database.read_all()?;
             if customers.is_empty() {
                 println!("No customers created yet");
@@ -95,7 +101,7 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
             let customer = prompt::select(&format!("Select a {name} to remove"), customers)?;
             Customer::remove(&database, &customer.uuid)?;
         }
-        ItemCommand::Edit => {
+        CustomerCommand::Edit => {
             let customers: Vec<Customer> = database.read_all()?;
             if customers.is_empty() {
                 println!("No customers created yet");
@@ -104,7 +110,7 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
             let customer = prompt::select(&format!("Select a {name} to edit"), customers)?;
             Customer::edit(&database, &customer, &customer.uuid)?;
         }
-        ItemCommand::Show => {
+        CustomerCommand::Show => {
             let customers: Vec<Customer> = database.read_all()?;
             if customers.is_empty() {
                 println!("No customers created yet");
@@ -117,18 +123,21 @@ pub fn handle_customer_command(command: &ItemCommand, database: FilesystemDataba
     Ok(())
 }
 
-pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabase) -> Result<()> {
+pub fn handle_invoice_command(
+    command: &InvoiceCommand,
+    database: FilesystemDatabase,
+) -> Result<()> {
     let name = "invoice";
     match command {
-        ItemCommand::List => Invoice::list(database)?,
-        ItemCommand::Add => {
+        InvoiceCommand::List => Invoice::list(database)?,
+        InvoiceCommand::Add => {
             let mut config = database.read::<Config>(CONFIG_KEY)?;
             let invoice = Invoice::new_with_uuid(&config.invoice_prefix, config.invoice_counter);
             Invoice::create(&database, &invoice, &invoice.uuid)?;
             config.invoice_counter += 1;
             database.update(CONFIG_KEY, config)?;
         }
-        ItemCommand::Remove => {
+        InvoiceCommand::Remove => {
             let invoices: Vec<Invoice> = database.read_all()?;
             if invoices.is_empty() {
                 println!("No invoices created yet");
@@ -137,7 +146,7 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
             let invoice = prompt::select(&format!("Select a {name} to remove"), invoices)?;
             Invoice::remove(&database, &invoice.uuid)?;
         }
-        ItemCommand::Edit => {
+        InvoiceCommand::Edit => {
             let invoices: Vec<Invoice> = database.read_all()?;
             if invoices.is_empty() {
                 println!("No invoices created yet");
@@ -147,7 +156,7 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
             let invoice = prompt::select(&format!("Select a {name} to edit"), invoices)?;
             Invoice::edit(&database, &invoice, &invoice.uuid)?;
         }
-        ItemCommand::Show => {
+        InvoiceCommand::Show => {
             let invoices: Vec<Invoice> = database.read_all()?;
             if invoices.is_empty() {
                 println!("No invoices created yet");
@@ -155,6 +164,17 @@ pub fn handle_invoice_command(command: &ItemCommand, database: FilesystemDatabas
             }
             let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
             Invoice::show(&invoice)?;
+        }
+        InvoiceCommand::Render => {
+            let business: Business = database.read(BUSINESS_KEY)?;
+            let invoices: Vec<Invoice> = database.read_all()?;
+            if invoices.is_empty() {
+                println!("No invoices created yet");
+                return Ok(());
+            }
+            let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
+            let customer: Customer = database.read(&invoice.customer)?;
+            renderer::render(business, customer, invoice)?;
         }
     }
     Ok(())
@@ -166,18 +186,30 @@ pub fn handle_business_command(
 ) -> Result<()> {
     match command {
         BusinessCommand::Init => {
+            // Init database models
+            database.define::<Business>()?;
+            database.define::<Customer>()?;
+            database.define::<Invoice>()?;
+            database.define::<Config>()?;
+
+            // Init config
             if database.exists::<Config>(CONFIG_KEY)? {
-                println!("Config already created");
-                return Ok(());
-            }
+                println!("Config already exists");
+            } else {
+                let config = Config::default();
+                Config::create(&database, &config, CONFIG_KEY)?;
+            };
+
+            // Init business
             if database.exists::<Business>(BUSINESS_KEY)? {
-                println!("Business already created");
-                return Ok(());
+                println!("Business already exists");
+            } else {
+                let business = Business::default();
+                Business::create(&database, &business, BUSINESS_KEY)?;
             }
-            let business = Business::default();
-            Business::create(&database, &business, BUSINESS_KEY)?;
-            let config = Config::default();
-            Config::create(&database, &config, CONFIG_KEY)?;
+
+            // Init renderer
+            renderer::init()?;
         }
         BusinessCommand::Edit => {
             let business = database.read::<Business>(BUSINESS_KEY)?;
