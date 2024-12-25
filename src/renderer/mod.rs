@@ -35,12 +35,17 @@ pub fn init() -> Result<()> {
         fs::create_dir_all(output_folder)?;
     }
 
-    let template_path = output_folder.join(MAIN_TYP_NAME);
+    let main_typ = output_folder.join(MAIN_TYP_NAME);
+    if main_typ.exists() {
+        println!("Template entrypoint already exists");
+    } else {
+        fs::write(main_typ, MAIN_TYP_CONTENT)?;
+    }
+    let template_path = output_folder.join(TEMPLATE_TYP_NAME);
     if template_path.exists() {
         println!("Template already exists");
     } else {
         download_template(TEMPLATE_URL, output_folder)?;
-        fs::write(template_path, MAIN_TYP_CONTENT)?;
     }
     Ok(())
 }
