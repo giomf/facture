@@ -49,15 +49,15 @@ impl TableAble for Invoice {
 impl Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&format!(
-            "{} - {} {}",
-            self.organization, self.contact.name, self.contact.surname
+            "{}: {} - {} {}",
+            self.id, self.organization, self.contact.name, self.contact.surname
         ))
     }
 }
 
 impl Display for Invoice {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("{}", self.uuid))
+        f.write_str(&format!("{}", self.id))
     }
 }
 
