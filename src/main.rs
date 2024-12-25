@@ -10,7 +10,8 @@ use anyhow::Result;
 use clap::Parser;
 use cli::Cli;
 use commands::{
-    handle_business_command, handle_config_command, handle_customer_command, handle_invoice_command,
+    business::handle_business_command, customer::handle_customer_command, handle_config_command,
+    invoice::handle_invoice_command,
 };
 use database::FilesystemDatabase;
 
