@@ -5,7 +5,6 @@ use crate::{
         models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
         FilesystemDatabase, YamlAble,
     },
-    renderer,
 };
 use anyhow::Result;
 
@@ -39,9 +38,6 @@ pub fn handle_business_command(
                 let business = Business::default();
                 Business::create(&database, &business, BUSINESS_KEY)?;
             }
-
-            // Init renderer
-            renderer::init()?;
         }
         BusinessCommand::Edit => {
             let business = database.read::<Business>(BUSINESS_KEY)?;

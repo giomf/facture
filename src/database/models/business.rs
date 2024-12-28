@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Business {
-    pub organisation: String,
+    pub name: String,
     pub vat_id: String,
     pub vat: f32,
     pub contact: Contact,

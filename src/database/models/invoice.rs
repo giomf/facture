@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 const TABLE_NAME: &str = "invoices";
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Invoice {
     pub uuid: String,
     pub id: String,
@@ -16,10 +16,10 @@ pub struct Invoice {
     pub items: Vec<Item>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct Item {
     pub description: String,
-    pub price: u32,
+    pub price: f32,
     pub quantity: Option<u32>,
 }
 

@@ -10,6 +10,20 @@ use crate::database::{
 use chrono::Days;
 use serde::{Deserialize, Serialize};
 
+use super::TemplateAble;
+
+pub const TEMPLATE_MAIN_CONTENT: &str = r#"
+#import "./template.typ": *
+
+#show: invoice.with(
+  data: yaml("data.yaml"),
+  styling: ( font: none ), // Explicitly use Typst's default font
+)
+"#;
+
+const TEMPLATE_URL: &str =
+    "https://raw.githubusercontent.com/ad-si/invoice-maker/refs/heads/main/invoice-maker.typ";
+
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct TemplateInvoice {
     #[serde(rename = "invoice-id")]
@@ -77,7 +91,7 @@ pub struct TemplateAddress {
 pub struct TemplateItem {
     pub date: String,
     pub description: String,
-    pub price: u32,
+    pub price: f32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub quantity: Option<u32>,
     #[serde(
@@ -94,8 +108,8 @@ fn duration_default() -> Option<u32> {
 
 impl YamlAble for TemplateInvoice {}
 
-impl TemplateInvoice {
-    pub fn new(business: Business, customer: Customer, invoice: Invoice) -> Self {
+impl TemplateAble for TemplateInvoice {
+    fn new(business: Business, customer: Customer, invoice: Invoice) -> Self {
         Self {
             invoice_id: invoice.id,
             delivery_date: invoice.delivery_date.to_string(),
@@ -113,13 +127,21 @@ impl TemplateInvoice {
             ..Default::default()
         }
     }
+
+    fn url() -> String {
+        TEMPLATE_URL.to_owned()
+    }
+
+    fn main() -> String {
+        TEMPLATE_MAIN_CONTENT.to_owned()
+    }
 }
 
 impl From<Business> for TemplateBiller {
     fn from(business: Business) -> Self {
         Self {
             name: format!("{} {}", business.contact.name, business.contact.surname),
-            job: business.organisation,
+            job: business.name,
             address: business.address.into(),
             iban: business.payment.iban,
             vat_id: business.vat_id,

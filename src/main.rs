@@ -1,7 +1,7 @@
 mod cli;
 mod commands;
 mod database;
-mod renderer;
+mod template;
 mod ui;
 
 use std::{path::PathBuf, str::FromStr};

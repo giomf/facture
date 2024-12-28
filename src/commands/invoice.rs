@@ -6,7 +6,7 @@ use crate::{
         models::{business::Business, config::Config, customer::Customer, invoice::Invoice},
         FilesystemDatabase, YamlAble,
     },
-    renderer,
+    template::{typst_invoice, Template},
     ui::prompt,
 };
 use anyhow::Result;
@@ -93,7 +93,8 @@ pub fn handle_invoice_command(
             }
             let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
             let customer: Customer = database.read(&invoice.customer)?;
-            renderer::render(business, customer, invoice)?;
+            let template = Template::<typst_invoice::Invoice>::new(business, customer, invoice)?;
+            template.render()?;
         }
     }
     Ok(())
