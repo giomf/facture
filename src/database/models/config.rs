@@ -1,3 +1,5 @@
+use std::default;
+
 use super::CONFIG_TABLE_NAME;
 use crate::{
     commands::CRUD,
@@ -14,6 +16,15 @@ pub struct Config {
     pub customer_counter: usize,
     pub invoice_prefix: String,
     pub invoice_counter: usize,
+    pub template: Template,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub enum Template {
+    #[default]
+    Default,
+    TypstInvoice,
+    InvoiceMaker,
 }
 
 impl YamlAble for Config {}
@@ -32,6 +43,7 @@ impl Default for Config {
             customer_counter: 1,
             invoice_prefix: INVOICE_PREFIX_DEFAULT.to_owned(),
             invoice_counter: 1,
+            template: Template::default(),
         }
     }
 }

@@ -93,7 +93,8 @@ pub fn handle_invoice_command(
             }
             let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
             let customer: Customer = database.read(&invoice.customer)?;
-            let template = Template::<typst_invoice::Invoice>::new(business, customer, invoice)?;
+            let template =
+                Template::<typst_invoice::TypstInvoice>::new(business, customer, invoice)?;
             template.render()?;
         }
     }

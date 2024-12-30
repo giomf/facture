@@ -15,7 +15,7 @@ const TEMPLATE_MAIN_CONTENT: &str = r#"
 "#;
 
 #[derive(Serialize, Deserialize, Debug, Default)]
-pub struct Invoice {
+pub struct TypstInvoice {
     #[serde(rename = "invoice-nr")]
     pub invoice_nr: String,
     #[serde(rename = "invoice-date")]
@@ -68,9 +68,9 @@ pub struct Item {
     pub price: f32,
 }
 
-impl YamlAble for Invoice {}
+impl YamlAble for TypstInvoice {}
 
-impl TemplateAble for Invoice {
+impl TemplateAble for TypstInvoice {
     fn new(
         business: business::Business,
         customer: customer::Customer,
