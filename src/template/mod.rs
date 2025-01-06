@@ -16,12 +16,12 @@ const TEMPLATE_LIB_NAME: &str = "template.typ";
 const COMPILE_COMMAND: &str = "typst";
 const COMPILE_ARGUMENT: &str = "compile";
 
-pub struct Template<T: TemplateAble> {
+pub struct Template<T: RenderAble> {
     invoice_id: String,
     template: T,
 }
 
-impl<T: TemplateAble> Template<T> {
+impl<T: RenderAble> Template<T> {
     pub fn new(business: Business, customer: Customer, invoice: Invoice) -> Result<Self> {
         Self::init()?;
         let template = Self {
@@ -85,7 +85,7 @@ impl<T: TemplateAble> Template<T> {
     }
 }
 
-pub trait TemplateAble: Sized + YamlAble {
+pub trait RenderAble: Sized + YamlAble {
     fn new(business: Business, customer: Customer, invoice: Invoice) -> Self;
     fn main() -> String;
     fn url() -> String;

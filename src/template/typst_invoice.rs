@@ -1,18 +1,64 @@
-use super::TemplateAble;
+use super::RenderAble;
 use crate::database::{
     models::{Business, Customer, Invoice, Item},
     YamlAble,
 };
 use serde::{Deserialize, Serialize};
 
-const TEMPLATE_URL: &str = "https://github.com/giomf/typst-invoice/blob/add-data-yaml/lib.typ";
+const TEMPLATE_URL: &str =
+    "https://raw.githubusercontent.com/erictapen/typst-invoice/refs/heads/main/lib.typ";
 const TEMPLATE_MAIN_CONTENT: &str = r#"
 #import "template.typ": invoice
 
-#show: invoice(
-  data: yaml("data.yaml")
+#let parse-date = (date-str) => {
+  let parts = date-str.split("-")
+  if parts.len() != 3 {
+    panic(
+      "Invalid date string: " + date-str + "\n" +
+      "Expected format: YYYY-MM-DD"
+    )
+  }
+  datetime(
+    year: int(parts.at(0)),
+    month: int(parts.at(1)),
+    day: int(parts.at(2)),
+  )
+}
+
+#let data = yaml("data.yaml")
+#let data = (
+  invoice-nr: data.invoice-nr,
+  invoice-date: parse-date(data.invoice-date),
+  items: data.items,
+  author: (
+    name: data.author.name,
+    street: data.author.street,
+    zip: data.author.zip,
+    city: data.author.city,
+    tax_nr: none,
+    signature: if data.author.signature == none {
+      none
+    } else {
+      image(data.author.signature, width: 5em)
+    }
+  ),
+  recipient: data.recipient,
+  bank-account: data.bank-account,
+  vat: data.vat,
+  kleinunternehmer: data.kleinunternehmer,
 )
-"#;
+
+#show: invoice(
+  data.invoice-nr,
+  data.invoice-date,
+  data.items,
+  data.author,
+  data.recipient,
+  data.bank-account,
+  vat: data.vat,
+  kleinunternehmer: data.kleinunternehmer,
+)
+ "#;
 
 pub mod template {
     use super::*;
@@ -73,8 +119,7 @@ pub mod template {
 }
 
 impl YamlAble for template::Invoice {}
-
-impl TemplateAble for template::Invoice {
+impl RenderAble for template::Invoice {
     fn new(business: Business, customer: Customer, invoice: Invoice) -> Self {
         Self {
             invoice_nr: invoice.id,
