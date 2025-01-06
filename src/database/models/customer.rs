@@ -1,19 +1,26 @@
-use crate::database::Model;
-
 use super::{uuid_v7, Address, Contact};
+use native_db::{native_db, ToKey};
+use native_model::{native_model, Model};
 use serde::{Deserialize, Serialize};
 
-const TABLE_NAME: &str = "customers";
+pub type Customer = v1::Customer;
 
-#[derive(Serialize, Deserialize, Debug, Clone, Default)]
-pub struct Customer {
-    pub uuid: String,
-    pub id: String,
-    pub organization: String,
-    pub vat_id: String,
-    pub contact: Contact,
-    pub address: Address,
-    pub invoices: Vec<String>,
+pub mod v1 {
+    use super::*;
+
+    #[native_db]
+    #[native_model(id = 1, version = 1)]
+    #[derive(Serialize, Deserialize, Debug, Clone, Default)]
+    pub struct Customer {
+        #[primary_key]
+        pub uuid: String,
+        pub id: String,
+        pub organization: String,
+        pub vat_id: String,
+        pub contact: Contact,
+        pub address: Address,
+        pub invoices: Vec<String>,
+    }
 }
 
 impl Customer {
@@ -37,11 +44,5 @@ impl Customer {
             .filter(|current_invoice_id| *current_invoice_id == invoice_id)
             .collect();
         self.invoices = new_invoices;
-    }
-}
-
-impl Model for Customer {
-    fn table() -> String {
-        TABLE_NAME.to_owned()
     }
 }

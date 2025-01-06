@@ -1,13 +1,24 @@
 pub mod models;
 
+use anyhow::{anyhow, Result};
+use models::v1;
+use native_db::*;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fs, io, path::PathBuf};
+use std::{io, path::Path, sync::LazyLock};
 
-pub type Result<T> = std::result::Result<T, Error>;
+// pub type Result<T> = std::result::Result<T, Error>;
 
-pub trait Model: Serialize + DeserializeOwned + YamlAble {
-    fn table() -> String;
-}
+pub const DATABASE_PATH: &str = "./facture.db";
+
+pub static MODELS: LazyLock<Models> = LazyLock::new(|| {
+    let mut models = Models::new();
+    // It's a good practice to define the models by specifying the version
+    models.define::<v1::Customer>().unwrap();
+    models.define::<v1::Invoice>().unwrap();
+    models.define::<v1::Business>().unwrap();
+    models.define::<v1::Config>().unwrap();
+    models
+});
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -27,11 +38,6 @@ pub enum Error {
     KeyNotFound(String),
 }
 
-#[derive(Debug, Clone)]
-pub struct FilesystemDatabase {
-    path: PathBuf,
-}
-
 pub trait YamlAble: Serialize + DeserializeOwned {
     fn to_yaml(&self) -> Result<String> {
         let yaml = serde_yml::to_string(&self)?;
@@ -44,108 +50,65 @@ pub trait YamlAble: Serialize + DeserializeOwned {
     }
 }
 
-impl FilesystemDatabase {
-    pub fn new(path: PathBuf) -> Self {
-        Self { path }
+pub struct FactureDatabase<'a> {
+    _builder: Builder,
+    database: Database<'a>,
+}
+
+impl<'a> FactureDatabase<'a> {
+    pub fn open(path: impl AsRef<Path>) -> Result<Self> {
+        let builder = Builder::new();
+        let database = builder.create(&MODELS, path.as_ref())?;
+        let database = Self {
+            _builder: builder,
+            database,
+        };
+        Ok(database)
     }
 
-    pub fn define<T: Model>(&self) -> Result<()> {
-        let path = self.path.join(T::table());
-        if !path.exists() {
-            fs::create_dir_all(path)?;
-        }
+    pub fn create<T: ToInput + Clone>(&self, item: T) -> Result<()> {
+        let rw = self.database.rw_transaction()?;
+        rw.insert(item)?;
+        rw.commit()?;
         Ok(())
     }
 
-    pub fn create<T: Model>(&self, key: &str, value: T) -> Result<()> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
+    pub fn update<T: ToInput>(&self, uuid: &str, item: T) -> Result<()> {
+        let rw = self.database.rw_transaction()?;
+        let old: T = self.read(uuid)?;
 
-        let path = table.join(format!("{key}.yaml"));
-        if path.exists() {
-            return Err(Error::KeyAlreadyExists(key.to_owned()));
-        }
-
-        let yaml = value.to_yaml()?;
-        fs::write(path, yaml)?;
+        rw.update(old, item)?;
+        rw.commit()?;
         Ok(())
     }
 
-    pub fn read<T: Model>(&self, key: &str) -> Result<T> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
-
-        let path = table.join(format!("{key}.yaml"));
-        if !path.exists() {
-            return Err(Error::KeyNotFound(key.to_owned()));
-        }
-
-        let value = fs::read_to_string(path)?;
-        let value = T::from_yaml(&value)?;
-        Ok(value)
+    pub fn exists<T: ToInput>(&self, uuid: &str) -> Result<bool> {
+        let r = self.database.r_transaction()?;
+        let result: Option<T> = r.get().primary(uuid)?;
+        Ok(result.is_some())
     }
 
-    pub fn update<T: Model>(&self, key: &str, value: T) -> Result<()> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
+    pub fn read<T: ToInput>(&self, uuid: &str) -> Result<T> {
+        let r = self.database.r_transaction()?;
+        let result: T = r
+            .get()
+            .primary(uuid)?
+            .ok_or_else(|| anyhow!("{uuid} not found"))?;
 
-        let path = table.join(format!("{key}.yaml"));
-        if !path.exists() {
-            return Err(Error::KeyNotFound(key.to_owned()));
-        }
+        Ok(result)
+    }
 
-        let yaml = value.to_yaml()?;
-        fs::write(path, yaml)?;
+    pub fn read_all<T: ToInput>(&self) -> Result<Vec<T>> {
+        let r = self.database.r_transaction()?;
+        let result = r.scan().primary()?.all()?.filter_map(Result::ok).collect();
+        Ok(result)
+    }
+
+    pub fn delete<T: ToInput>(&self, key: &str) -> Result<()> {
+        let rw = self.database.rw_transaction()?;
+        let item: T = self.read(key)?;
+        rw.remove(item)?;
+        rw.commit()?;
         Ok(())
-    }
-
-    pub fn delete<T: Model>(&self, key: &str) -> Result<()> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
-
-        let path = table.join(format!("{key}.yaml"));
-        if !path.exists() {
-            return Err(Error::KeyNotFound(key.to_owned()));
-        }
-
-        fs::remove_file(path)?;
-
-        Ok(())
-    }
-
-    pub fn exists<T: Model>(&self, key: &str) -> Result<bool> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
-
-        let path = table.join(format!("{key}.yaml"));
-        Ok(path.exists())
-    }
-
-    pub fn read_all<T: Model>(&self) -> Result<Vec<T>> {
-        let table = self.path.join(T::table());
-        if !table.exists() {
-            return Err(Error::TableNotFound(T::table()));
-        }
-
-        let mut values = Vec::default();
-        for entry in fs::read_dir(table)? {
-            let entry = entry?;
-            if entry.file_type()?.is_file() {
-                let value = fs::read_to_string(entry.path())?;
-                let value = T::from_yaml(&value)?;
-                values.push(value);
-            }
-        }
-        Ok(values)
     }
 }

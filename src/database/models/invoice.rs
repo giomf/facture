@@ -1,26 +1,33 @@
-use crate::database::Model;
-
 use super::uuid_v7;
 use chrono::{Local, NaiveDate};
+use native_db::{native_db, ToKey};
+use native_model::{native_model, Model};
 use serde::{Deserialize, Serialize};
 
-const TABLE_NAME: &str = "invoices";
+pub type Invoice = v1::Invoice;
+pub type Item = v1::Item;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct Invoice {
-    pub uuid: String,
-    pub id: String,
-    pub issuing_date: NaiveDate,
-    pub delivery_date: NaiveDate,
-    pub customer: String,
-    pub items: Vec<Item>,
-}
+pub mod v1 {
+    use super::*;
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct Item {
-    pub description: String,
-    pub price: f32,
-    pub quantity: Option<u32>,
+    #[native_db]
+    #[native_model(id = 2, version = 1)]
+    #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+    pub struct Invoice {
+        #[primary_key]
+        pub uuid: String,
+        pub id: String,
+        pub issuing_date: NaiveDate,
+        pub delivery_date: NaiveDate,
+        pub customer: String,
+        pub items: Vec<Item>,
+    }
+    #[derive(Serialize, Deserialize, Debug, Default, Clone)]
+    pub struct Item {
+        pub description: String,
+        pub price: f32,
+        pub quantity: Option<u32>,
+    }
 }
 
 impl Invoice {
@@ -34,11 +41,5 @@ impl Invoice {
             items: vec![Item::default()],
             ..Default::default()
         }
-    }
-}
-
-impl Model for Invoice {
-    fn table() -> String {
-        TABLE_NAME.to_owned()
     }
 }

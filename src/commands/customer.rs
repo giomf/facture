@@ -1,9 +1,9 @@
-use super::{ListAble, CONFIG_KEY, CRUD};
+use super::{ListAble, CRUD};
 use crate::{
     cli::CustomerCommand,
     database::{
-        models::{config::Config, customer::Customer, invoice::Invoice},
-        FilesystemDatabase, YamlAble,
+        models::{Config, Customer, Invoice, CONFIG_PRIMARY_KEY},
+        FactureDatabase, YamlAble,
     },
     ui::prompt,
 };
@@ -13,7 +13,7 @@ impl YamlAble for Customer {}
 impl ListAble for Customer {}
 
 impl CRUD for Customer {
-    fn remove(database: &FilesystemDatabase, key: &str) -> Result<()> {
+    fn remove(database: &FactureDatabase, key: &str) -> Result<()> {
         let result = prompt::confirm("This will also delete all invoices")?;
         if !result {
             println!("Aborted!");
@@ -29,21 +29,18 @@ impl CRUD for Customer {
         Ok(())
     }
 }
-pub fn handle_customer_command(
-    command: &CustomerCommand,
-    database: FilesystemDatabase,
-) -> Result<()> {
+pub fn handle_customer_command(command: &CustomerCommand, database: FactureDatabase) -> Result<()> {
     let name = "customer";
 
     match command {
         CustomerCommand::List => Customer::list(database)?,
         CustomerCommand::Add => {
-            let mut config = database.read::<Config>(CONFIG_KEY)?;
+            let mut config = database.read::<Config>(CONFIG_PRIMARY_KEY)?;
             let customer =
                 Customer::new_with_uuid(&config.customer_prefix, config.customer_counter);
-            Customer::create(&database, &customer, &customer.uuid)?;
+            Customer::create(&database, &customer)?;
             config.customer_counter += 1;
-            database.update(CONFIG_KEY, config)?;
+            database.update(CONFIG_PRIMARY_KEY, config)?;
         }
         CustomerCommand::Remove => {
             let customers: Vec<Customer> = database.read_all()?;

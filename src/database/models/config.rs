@@ -1,40 +1,31 @@
-use std::default;
+use crate::{commands::CRUD, database::YamlAble};
 
-use super::CONFIG_TABLE_NAME;
-use crate::{
-    commands::CRUD,
-    database::{Model, YamlAble},
-};
+use native_db::{native_db, ToKey};
+use native_model::{native_model, Model};
 use serde::{Deserialize, Serialize};
 
+pub const PRIMARY_KEY: &str = "CONFIG";
 const CUSTOMER_PREFIX_DEFAULT: &str = "C";
 const INVOICE_PREFIX_DEFAULT: &str = "I";
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Config {
-    pub customer_prefix: String,
-    pub customer_counter: usize,
-    pub invoice_prefix: String,
-    pub invoice_counter: usize,
-    pub template: Template,
-}
+pub type Config = v1::Config;
 
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub enum Template {
-    #[default]
-    Default,
-    TypstInvoice,
-    InvoiceMaker,
+pub mod v1 {
+    use super::*;
+
+    #[native_db(primary_key(primary_key -> String))]
+    #[native_model(id = 4, version = 1)]
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub struct Config {
+        pub customer_prefix: String,
+        pub customer_counter: usize,
+        pub invoice_prefix: String,
+        pub invoice_counter: usize,
+    }
 }
 
 impl YamlAble for Config {}
 impl CRUD for Config {}
-
-impl Model for Config {
-    fn table() -> String {
-        CONFIG_TABLE_NAME.to_owned()
-    }
-}
 
 impl Default for Config {
     fn default() -> Self {
@@ -43,7 +34,12 @@ impl Default for Config {
             customer_counter: 1,
             invoice_prefix: INVOICE_PREFIX_DEFAULT.to_owned(),
             invoice_counter: 1,
-            template: Template::default(),
         }
+    }
+}
+
+impl Config {
+    fn primary_key(&self) -> String {
+        PRIMARY_KEY.to_owned()
     }
 }

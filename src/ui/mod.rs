@@ -3,7 +3,7 @@ pub mod prompt;
 use comfy_table::{presets::UTF8_FULL_CONDENSED, ContentArrangement, Table};
 use std::fmt::Display;
 
-use crate::database::models::{customer::Customer, invoice::Invoice};
+use crate::database::models::{Customer, Invoice};
 
 pub trait TableAble {
     fn header() -> Vec<String>;
