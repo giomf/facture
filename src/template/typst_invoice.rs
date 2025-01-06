@@ -35,7 +35,7 @@ const TEMPLATE_MAIN_CONTENT: &str = r#"
     street: data.author.street,
     zip: data.author.zip,
     city: data.author.city,
-    tax_nr: none,
+    tax_nr: data.author.tax_nr,
     signature: if data.author.signature == none {
       none
     } else {
@@ -124,7 +124,7 @@ impl RenderAble for template::Invoice {
         Self {
             invoice_nr: invoice.id,
             invoice_date: invoice.issuing_date.to_string(),
-            kleinunternehmer: false,
+            kleinunternehmer: business.small_business,
             vat: business.vat,
             author: business.clone().into(),
             recipient: customer.into(),
@@ -149,7 +149,7 @@ impl From<Business> for template::Author {
             street: format!("{} {}", business.address.street, business.address.number),
             zip: business.address.postal_code,
             city: business.address.city,
-            tax_nr: business.vat_id,
+            tax_nr: business.tax_number,
             signature: None,
         }
     }
@@ -172,6 +172,7 @@ impl From<Business> for template::BankAccount {
             name: format!("{} {}", business.contact.name, business.contact.surname),
             bank: business.payment.bank,
             iban: business.payment.iban,
+            bic: business.payment.bic,
             ..Default::default()
         }
     }

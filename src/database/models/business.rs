@@ -17,7 +17,9 @@ pub mod v1 {
     pub struct Business {
         pub name: String,
         pub vat_id: String,
+        pub tax_number: String,
         pub vat: f32,
+        pub small_business: bool,
         pub contact: Contact,
         pub address: Address,
         pub payment: Payment,
@@ -26,6 +28,7 @@ pub mod v1 {
     pub struct Payment {
         pub bank: String,
         pub iban: String,
+        pub bic: String,
     }
 }
 
