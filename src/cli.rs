@@ -15,6 +15,7 @@ pub struct Cli {
 /// Subcommands of the application
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    Init,
     #[command(subcommand)]
     Customer(CustomerCommand),
     #[command(subcommand)]
@@ -46,7 +47,6 @@ pub enum InvoiceCommand {
 
 #[derive(Subcommand, Debug)]
 pub enum BusinessCommand {
-    Init,
     Edit,
     Show,
 }

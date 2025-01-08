@@ -5,7 +5,7 @@ pub mod invoice;
 use crate::{
     cli::ConfigCommand,
     database::{
-        models::{Config, CONFIG_PRIMARY_KEY},
+        models::{Business, Config, BUSINESS_PRIMARY_KEY, CONFIG_PRIMARY_KEY},
         FactureDatabase, YamlAble,
     },
     ui::{self, TableAble},
@@ -83,6 +83,28 @@ pub fn handle_config_command(command: &ConfigCommand, database: FactureDatabase)
             let config = database.read::<Config>(CONFIG_PRIMARY_KEY)?;
             Config::show(&config)?;
         }
+    }
+
+    Ok(())
+}
+
+pub fn handle_init_command(database: FactureDatabase) -> Result<()> {
+    // Init config
+    if database.exists::<Config>(CONFIG_PRIMARY_KEY)? {
+        println!("Config already exists... skipping!");
+    } else {
+        println!("Creating config...");
+        let config = Config::default();
+        Config::create(&database, &config)?;
+    };
+
+    // Init business
+    if database.exists::<Business>(BUSINESS_PRIMARY_KEY)? {
+        println!("Business already exists... skipping!");
+    } else {
+        println!("Creating Business...");
+        let business = Business::default();
+        Business::create(&database, &business)?;
     }
 
     Ok(())
