@@ -4,6 +4,7 @@ use crate::database::{
     YamlAble,
 };
 use serde::{Deserialize, Serialize};
+use template::Gender;
 
 const TEMPLATE_URL: &str =
     "https://raw.githubusercontent.com/erictapen/typst-invoice/refs/heads/main/lib.typ";
@@ -173,6 +174,9 @@ impl From<Business> for template::BankAccount {
             bank: business.payment.bank,
             iban: business.payment.iban,
             bic: business.payment.bic,
+            gender: Some(Gender {
+                account_holder: "Kontoinhaber".to_owned(),
+            }),
             ..Default::default()
         }
     }
