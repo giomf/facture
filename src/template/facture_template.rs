@@ -4,10 +4,10 @@ use crate::database::{
     YamlAble,
 };
 use serde::{Deserialize, Serialize};
-use template::Gender;
 
 const TEMPLATE_URL: &str =
-    "https://raw.githubusercontent.com/erictapen/typst-invoice/refs/heads/main/lib.typ";
+    "https://raw.githubusercontent.com/giomf/facture-template/refs/heads/main/lib.typ";
+
 const TEMPLATE_MAIN_CONTENT: &str = r#"
 #import "template.typ": invoice
 
@@ -27,37 +27,18 @@ const TEMPLATE_MAIN_CONTENT: &str = r#"
 }
 
 #let data = yaml("data.yaml")
-#let data = (
-  invoice-nr: data.invoice-nr,
-  invoice-date: parse-date(data.invoice-date),
-  items: data.items,
-  author: (
-    name: data.author.name,
-    street: data.author.street,
-    zip: data.author.zip,
-    city: data.author.city,
-    tax_nr: data.author.tax_nr,
-    signature: if data.author.signature == none {
-      none
-    } else {
-      image(data.author.signature, width: 5em)
-    }
-  ),
-  recipient: data.recipient,
-  bank-account: data.bank-account,
-  vat: data.vat,
-  kleinunternehmer: data.kleinunternehmer,
-)
 
 #show: invoice(
-  data.invoice-nr,
-  data.invoice-date,
+  data.id,
+  issuing-date: parse-date(data.issuing-date),
   data.items,
   data.author,
   data.recipient,
   data.bank-account,
+  due-days: data.due-days,
+  service-date: parse-date(data.service-date),
   vat: data.vat,
-  kleinunternehmer: data.kleinunternehmer,
+  small-business: data.small-business,
 )
  "#;
 
@@ -66,11 +47,15 @@ pub mod template {
 
     #[derive(Serialize, Deserialize, Debug, Default)]
     pub struct Invoice {
-        #[serde(rename = "invoice-nr")]
-        pub invoice_nr: String,
-        #[serde(rename = "invoice-date")]
-        pub invoice_date: String,
-        pub kleinunternehmer: bool,
+        pub id: String,
+        #[serde(rename = "issuing-date")]
+        pub issuing_date: String,
+        #[serde(rename = "service-date")]
+        pub service_date: String,
+        #[serde(rename = "small-business")]
+        pub small_business: bool,
+        #[serde(rename = "due-days")]
+        pub due_days: u32,
         pub vat: f32,
         pub author: Author,
         pub recipient: Recipient,
@@ -83,9 +68,11 @@ pub mod template {
     pub struct Author {
         pub name: String,
         pub street: String,
-        pub zip: String,
+        #[serde(rename = "postal-code")]
+        pub postal_code: String,
         pub city: String,
-        pub tax_nr: String,
+        #[serde(rename = "tax-number")]
+        pub tax_number: String,
         pub signature: Option<String>,
     }
 
@@ -93,7 +80,8 @@ pub mod template {
     pub struct Recipient {
         pub name: String,
         pub street: String,
-        pub zip: String,
+        #[serde(rename = "postal-code")]
+        pub postal_code: String,
         pub city: String,
     }
 
@@ -103,13 +91,6 @@ pub mod template {
         pub bank: String,
         pub iban: String,
         pub bic: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        pub gender: Option<Gender>,
-    }
-
-    #[derive(Serialize, Deserialize, Debug, Default)]
-    pub struct Gender {
-        pub account_holder: String,
     }
 
     #[derive(Serialize, Deserialize, Debug, Default)]
@@ -123,9 +104,11 @@ impl YamlAble for template::Invoice {}
 impl RenderAble for template::Invoice {
     fn new(business: Business, customer: Customer, invoice: Invoice) -> Self {
         Self {
-            invoice_nr: invoice.id,
-            invoice_date: invoice.issuing_date.to_string(),
-            kleinunternehmer: business.small_business,
+            id: invoice.id,
+            issuing_date: invoice.issuing_date.to_string(),
+            service_date: invoice.delivery_date.to_string(),
+            small_business: business.small_business,
+            due_days: invoice.due_days,
             vat: business.vat,
             author: business.clone().into(),
             recipient: customer.into(),
@@ -148,9 +131,9 @@ impl From<Business> for template::Author {
         Self {
             name: format!("{} {}", business.contact.name, business.contact.surname),
             street: format!("{} {}", business.address.street, business.address.number),
-            zip: business.address.postal_code,
+            postal_code: business.address.postal_code,
             city: business.address.city,
-            tax_nr: business.tax_number,
+            tax_number: business.tax_number,
             signature: None,
         }
     }
@@ -161,7 +144,7 @@ impl From<Customer> for template::Recipient {
         Self {
             name: format!("{} {}", customer.contact.name, customer.contact.surname),
             street: format!("{} {}", customer.address.street, customer.address.number),
-            zip: customer.address.postal_code,
+            postal_code: customer.address.postal_code,
             city: customer.address.city,
         }
     }
@@ -174,9 +157,6 @@ impl From<Business> for template::BankAccount {
             bank: business.payment.bank,
             iban: business.payment.iban,
             bic: business.payment.bic,
-            gender: Some(Gender {
-                account_holder: "Kontoinhaber".to_owned(),
-            }),
             ..Default::default()
         }
     }

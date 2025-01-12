@@ -19,6 +19,7 @@ pub mod v1 {
         pub id: String,
         pub issuing_date: NaiveDate,
         pub delivery_date: NaiveDate,
+        pub due_days: u32,
         pub customer: String,
         pub items: Vec<Item>,
     }
@@ -38,6 +39,7 @@ impl Invoice {
             id: format!("{prefix}{:05}", id),
             issuing_date: date,
             delivery_date: date,
+            due_days: 30,
             items: vec![Item::default()],
             ..Default::default()
         }

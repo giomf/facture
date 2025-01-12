@@ -1,12 +1,12 @@
-mod typst_invoice;
+mod facture_template;
 
 use crate::database::{
     models::{Business, Customer, Invoice},
     YamlAble,
 };
 use anyhow::Result;
+pub use facture_template::template;
 use std::{fs, path::Path, process::Command};
-pub use typst_invoice::template;
 use ureq;
 
 const OUTPUT_FOLDER: &str = "invoices";
