@@ -5,8 +5,8 @@ use native_model::{native_model, Model};
 use serde::{Deserialize, Serialize};
 
 pub const PRIMARY_KEY: &str = "CONFIG";
-const CUSTOMER_PREFIX_DEFAULT: &str = "C";
-const INVOICE_PREFIX_DEFAULT: &str = "I";
+const CUSTOMER_PREFIX_DEFAULT: &str = "K";
+const INVOICE_PREFIX_DEFAULT: &str = "R";
 
 pub type Config = v1::Config;
 
