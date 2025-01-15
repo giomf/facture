@@ -16,7 +16,6 @@ native_model = "0.4.20"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_yml = "0.0.12"
 tempfile = "3.14.0"
-thiserror = "2.0.6"
 ureq = "2.12.1"
 uuid = { version = "1.11.0", features = ["v7"]  }
 

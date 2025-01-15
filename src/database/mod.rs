@@ -4,9 +4,7 @@ use anyhow::{anyhow, Result};
 use models::v1;
 use native_db::*;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{io, path::Path, sync::LazyLock};
-
-// pub type Result<T> = std::result::Result<T, Error>;
+use std::{path::Path, sync::LazyLock};
 
 pub const DATABASE_PATH: &str = "./facture.db";
 
@@ -19,24 +17,6 @@ pub static MODELS: LazyLock<Models> = LazyLock::new(|| {
     models.define::<v1::Config>().unwrap();
     models
 });
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("I/O error")]
-    IO(#[from] io::Error),
-
-    #[error("Deserialization or Serialization error")]
-    DeOrSerialization(#[from] serde_yml::Error),
-
-    #[error("Table \"{0}\" not found")]
-    TableNotFound(String),
-
-    #[error("Key \"{0}\" already exists")]
-    KeyAlreadyExists(String),
-
-    #[error("Key \"{0}\" not found")]
-    KeyNotFound(String),
-}
 
 pub trait YamlAble: Serialize + DeserializeOwned {
     fn to_yaml(&self) -> Result<String> {
