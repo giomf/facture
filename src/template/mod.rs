@@ -43,7 +43,7 @@ impl<T: RenderAble> Template<T> {
             fs::write(template_main, T::main())?;
         }
         let template_lib = output_folder.join(TEMPLATE_LIB_NAME);
-        if template_lib.exists() {
+        if !template_lib.exists() {
             Self::download_template(&T::url(), &template_lib)?;
         }
         Ok(())
