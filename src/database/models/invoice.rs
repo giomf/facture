@@ -32,11 +32,11 @@ pub mod v1 {
 }
 
 impl Invoice {
-    pub fn new_with_uuid(prefix: &str, id: usize) -> Self {
+    pub fn new_with_uuid(id: String) -> Self {
         let date = Local::now().date_naive();
         Self {
             uuid: uuid_v7(),
-            id: format!("{prefix}{:05}", id),
+            id,
             issuing_date: date,
             delivery_date: date,
             due_days: 30,

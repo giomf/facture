@@ -1,4 +1,4 @@
-use super::{ListAble, CRUD};
+use super::{render_id_template, ListAble, CRUD};
 use crate::{
     cli::CustomerCommand,
     database::{
@@ -29,6 +29,7 @@ impl CRUD for Customer {
         Ok(())
     }
 }
+
 pub fn handle_customer_command(command: &CustomerCommand, database: FactureDatabase) -> Result<()> {
     let name = "customer";
 
@@ -36,8 +37,11 @@ pub fn handle_customer_command(command: &CustomerCommand, database: FactureDatab
         CustomerCommand::List => Customer::list(database)?,
         CustomerCommand::Add => {
             let mut config = database.read::<Config>(CONFIG_PRIMARY_KEY)?;
-            let customer =
-                Customer::new_with_uuid(&config.customer_prefix, config.customer_counter);
+            let customer_id = render_id_template(
+                &config.customer_template,
+                &format!("{:04}", config.customer_counter),
+            )?;
+            let customer = Customer::new_with_uuid(customer_id);
             Customer::create(&database, &customer)?;
             config.customer_counter += 1;
             database.update(CONFIG_PRIMARY_KEY, config)?;

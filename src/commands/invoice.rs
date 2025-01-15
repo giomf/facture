@@ -1,4 +1,4 @@
-use super::{ListAble, CRUD};
+use super::{render_id_template, ListAble, CRUD};
 use crate::{
     cli::InvoiceCommand,
     commands::edit_object_in_temp_file,
@@ -48,7 +48,11 @@ pub fn handle_invoice_command(command: &InvoiceCommand, database: FactureDatabas
         InvoiceCommand::List => Invoice::list(database)?,
         InvoiceCommand::Add => {
             let mut config = database.read::<Config>(CONFIG_PRIMARY_KEY)?;
-            let invoice = Invoice::new_with_uuid(&config.invoice_prefix, config.invoice_counter);
+            let invoice_id = render_id_template(
+                &config.invoice_template,
+                &format!("{:03}", config.invoice_counter),
+            )?;
+            let invoice = Invoice::new_with_uuid(invoice_id);
             Invoice::create(&database, &invoice)?;
             config.invoice_counter += 1;
             database.update(CONFIG_PRIMARY_KEY, config)?;

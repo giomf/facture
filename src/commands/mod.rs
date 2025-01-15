@@ -11,6 +11,8 @@ use crate::{
     ui::{self, TableAble},
 };
 use anyhow::Result;
+use chrono::{Datelike, Local};
+use minijinja::{context, Environment};
 use native_db::ToInput;
 use std::{env, fs, process::Command};
 use tempfile::Builder;
@@ -108,4 +110,12 @@ pub fn handle_init_command(database: FactureDatabase) -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn render_id_template(template: &str, counter: &str) -> Result<String> {
+    let env = Environment::new();
+    let date = Local::now().date_naive();
+    let id = env.render_str(template,
+        context!(year => date.year().to_string(), month => date.month().to_string(), day => date.month().to_string(), counter => counter))?;
+    Ok(id)
 }

@@ -24,10 +24,10 @@ pub mod v1 {
 }
 
 impl Customer {
-    pub fn new_with_uuid(prefix: &str, id: usize) -> Self {
+    pub fn new_with_uuid(id: String) -> Self {
         Self {
             uuid: uuid_v7(),
-            id: format!("{prefix}{:05}", id),
+            id,
             ..Default::default()
         }
     }
