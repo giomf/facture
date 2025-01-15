@@ -88,7 +88,7 @@ pub fn handle_invoice_command(command: &InvoiceCommand, database: FactureDatabas
                 println!("No invoices created yet");
                 return Ok(());
             }
-            let invoice = prompt::select(&format!("Select a {name} to show"), invoices)?;
+            let invoice = prompt::select(&format!("Select a {name} to render"), invoices)?;
             let customer: Customer = database.read(&invoice.customer)?;
             let template = Template::<template::Invoice>::new(business, customer, invoice)?;
             template.render()?;

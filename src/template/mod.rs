@@ -34,22 +34,16 @@ impl<T: RenderAble> Template<T> {
 
     fn init() -> Result<()> {
         let output_folder = Path::new(OUTPUT_FOLDER);
-        if output_folder.exists() {
-            println!("Output folder already exists");
-        } else {
+        if !output_folder.exists() {
             fs::create_dir_all(output_folder)?;
         }
 
         let template_main = output_folder.join(TEMPLATE_MAIN_NAME);
-        if template_main.exists() {
-            println!("Template entrypoint already exists");
-        } else {
+        if !template_main.exists() {
             fs::write(template_main, T::main())?;
         }
         let template_lib = output_folder.join(TEMPLATE_LIB_NAME);
         if template_lib.exists() {
-            println!("Template already exists");
-        } else {
             Self::download_template(&T::url(), &template_lib)?;
         }
         Ok(())
